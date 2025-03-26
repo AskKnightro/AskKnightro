@@ -1,0 +1,69 @@
+####################
+# OS-specific stuff
+####################
+.DS_Store
+Thumbs.db
+
+####################
+# IDE / Editor
+####################
+# IntelliJ
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Eclipse
+.classpath
+.project
+.settings/
+
+# Visual Studio Code
+.vscode/
+
+####################
+# Java / Maven
+####################
+target/
+*.class
+*.jar
+*.war
+*.ear
+
+# Maven support files
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+
+####################
+# Logs
+####################
+*.log
+
+####################
+# Node / React
+####################
+node_modules/
+npm-debug.log*
+yarn-error.log*
+dist/
+build/
+
+####################
+# Env files
+####################
+.env
+.env.local
+.env.development
+.env.development.local
+.env.test
+.env.test.local
+.env.production
+.env.production.local
+
+####################
+# Coverage
+####################
+coverage/
