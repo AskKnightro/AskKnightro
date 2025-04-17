@@ -25,8 +25,6 @@ public class CourseMaterialController
     }
 
 
-
-
     // Test endpoint for retrieving Course Material from Postgres DB
     @GetMapping("/{id}")
     public ResponseEntity<CourseMaterialDTO> getCourseMaterial(@PathVariable Integer id) // Taking in id from request

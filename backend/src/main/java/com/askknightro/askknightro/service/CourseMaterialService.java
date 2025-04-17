@@ -73,13 +73,15 @@ public class CourseMaterialService
         CourseMaterial courseMaterial = courseMaterialRepository.findById(courseMaterialId)
                 .orElseThrow(() -> new NotFoundException("Course Material not found: " + courseMaterialId));
 
-        // Soft delete in Postgres -> hard delete works as well but we would have to handle any foreign key/primary key dependencies so for now we do a soft delete
-        courseMaterial.setIsDeleted(true);
-        courseMaterial.setDeletedAt(LocalDateTime.now());
-        courseMaterialRepository.save(courseMaterial);
+//        // Soft delete in Postgres
+//        courseMaterial.setIsDeleted(true);
+//        courseMaterial.setDeletedAt(LocalDateTime.now());
+//        courseMaterialRepository.save(courseMaterial);
+
+        String payload = buildPayload(courseMaterial);
 
         // hard delete call would look something like this below
-        //courseMaterialRepository.deleteById(courseMaterialId);
+        courseMaterialRepository.deleteById(courseMaterialId);
 
         // Save delete event to Outbox Table to be relayed to our Outbox publisher
         System.out.println("Saving outbox event for courseMaterialId: " + courseMaterialId);
@@ -87,7 +89,7 @@ public class CourseMaterialService
                 "Course_Material",
                 courseMaterialId,
                 "DELETE",
-                buildPayload(courseMaterial) // includes vectorId
+                payload // includes vectorId
         );
 
         // Success case
