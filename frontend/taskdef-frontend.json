@@ -1,0 +1,33 @@
+{
+  "family": "frontend-ssr",
+  "requiresCompatibilities": ["FARGATE"],
+  "networkMode": "awsvpc",
+  "cpu": "512",
+  "memory": "1024",
+  "executionRoleArn": "arn:aws:iam::423623855389:role/ecsTaskExecutionRole",
+  "taskRoleArn": "arn:aws:iam::423623855389:role/ecsTaskRole",
+  "containerDefinitions": [
+    {
+      "name": "nextjs",
+      "image": "423623855389.dkr.ecr.us.amazonaws.com/my-frontend:latest",
+      "portMappings": [{ "containerPort": 3000 }],
+      "essential": true,
+      "environment": [
+        { "name": "NODE_ENV", "value": "production" },
+        { "name": "API_BASE_URL", "value": "https://api.example.com" }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/frontend-ssr",
+          "awslogs-region": "us-east-2",
+          "awslogs-stream-prefix": "ecs"
+        }
+      },
+      "healthCheck": {
+        "command": ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000/ || exit 1"],
+        "interval": 30, "timeout": 5, "retries": 3, "startPeriod": 15
+      }
+    }
+  ]
+}
