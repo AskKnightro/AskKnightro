@@ -59,7 +59,7 @@ jobs:
             container: spring
             ecs_service: backend-api-svc
 
-    steps:
+        steps:
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -73,14 +73,19 @@ jobs:
       - name: Login to ECR
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build and push image
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push image (multi-arch)
         working-directory: ${{ matrix.service.dir }}
         env:
           IMAGE_TAG: ${{ github.sha }}
         run: |
           IMAGE_URI=${{ env.ECR_REGISTRY }}/${{ matrix.service.ecr_repo }}:${IMAGE_TAG}
-          docker build -t "$IMAGE_URI" .
-          docker push "$IMAGE_URI"
+          docker buildx build --platform linux/amd64,linux/arm64 -t "$IMAGE_URI" --push .
           echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
 
       - name: Render task definition with new image
@@ -97,4 +102,5 @@ jobs:
           task-definition: ${{ steps.render.outputs.task-definition }}
           service: ${{ matrix.service.ecs_service }}
           cluster: ${{ env.CLUSTER }}
+          wait-for-service-stability: true
           wait-for-service-stability: true
