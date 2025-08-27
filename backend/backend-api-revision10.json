@@ -1,0 +1,107 @@
+{
+    "compatibilities": [
+        "EC2",
+        "FARGATE"
+    ],
+    "containerDefinitions": [
+        {
+            "cpu": 0,
+            "environment": [],
+            "environmentFiles": [],
+            "essential": true,
+            "image": "423623855389.dkr.ecr.us-east-2.amazonaws.com/my-backend:latest",
+            "logConfiguration": {
+                "logDriver": "awslogs",
+                "options": {
+                    "awslogs-group": "/ecs/backend-api",
+                    "awslogs-create-group": "true",
+                    "awslogs-region": "us-east-2",
+                    "awslogs-stream-prefix": "ecs"
+                },
+                "secretOptions": []
+            },
+            "mountPoints": [],
+            "name": "spring",
+            "portMappings": [
+                {
+                    "appProtocol": "http",
+                    "containerPort": 8080,
+                    "hostPort": 8080,
+                    "name": "spring-8080-tcp",
+                    "protocol": "tcp"
+                }
+            ],
+            "secrets": [
+                {
+                    "name": "SPRING_DATASOURCE_PASSWORD",
+                    "valueFrom": "arn:aws:secretsmanager:us-east-2:423623855389:secret:prod/AskKnightroV2/postgres-1byNcd:password::"
+                },
+                {
+                    "name": "SPRING_DATASOURCE_URL",
+                    "valueFrom": "arn:aws:secretsmanager:us-east-2:423623855389:secret:prod/AskKnightroV2/postgres-1byNcd:username::"
+                },
+                {
+                    "name": "SPRING_DATASOURCE_USERNAME",
+                    "valueFrom": "arn:aws:secretsmanager:us-east-2:423623855389:secret:prod/AskKnightroV2/postgres-1byNcd:url::"
+                }
+            ],
+            "systemControls": [],
+            "ulimits": [],
+            "volumesFrom": []
+        }
+    ],
+    "cpu": "256",
+    "enableFaultInjection": false,
+    "executionRoleArn": "arn:aws:iam::423623855389:role/ecsTaskExecutionRole",
+    "family": "backend-api",
+    "memory": "512",
+    "networkMode": "awsvpc",
+    "placementConstraints": [],
+    "registeredAt": "2025-08-27T15:04:48.505Z",
+    "registeredBy": "arn:aws:iam::423623855389:root",
+    "requiresAttributes": [
+        {
+            "name": "com.amazonaws.ecs.capability.logging-driver.awslogs"
+        },
+        {
+            "name": "ecs.capability.execution-role-awslogs"
+        },
+        {
+            "name": "com.amazonaws.ecs.capability.ecr-auth"
+        },
+        {
+            "name": "com.amazonaws.ecs.capability.docker-remote-api.1.19"
+        },
+        {
+            "name": "ecs.capability.secrets.asm.environment-variables"
+        },
+        {
+            "name": "com.amazonaws.ecs.capability.task-iam-role"
+        },
+        {
+            "name": "ecs.capability.execution-role-ecr-pull"
+        },
+        {
+            "name": "com.amazonaws.ecs.capability.docker-remote-api.1.18"
+        },
+        {
+            "name": "ecs.capability.task-eni"
+        },
+        {
+            "name": "com.amazonaws.ecs.capability.docker-remote-api.1.29"
+        }
+    ],
+    "requiresCompatibilities": [
+        "FARGATE"
+    ],
+    "revision": 10,
+    "runtimePlatform": {
+        "cpuArchitecture": "ARM64",
+        "operatingSystemFamily": "LINUX"
+    },
+    "status": "ACTIVE",
+    "taskDefinitionArn": "arn:aws:ecs:us-east-2:423623855389:task-definition/backend-api:10",
+    "taskRoleArn": "arn:aws:iam::423623855389:role/ecsTaskRole-backend",
+    "volumes": [],
+    "tags": []
+}
