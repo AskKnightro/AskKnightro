@@ -49,13 +49,13 @@ jobs:
           - name: frontend
             dir: frontend
             ecr_repo: my-frontend
-            task_def: frontend/frontend-taskdef.json
+            task_def: frontend/frontend-ssr-revision3.json
             container: frontend
             ecs_service: frontend-ssr-svc
           - name: backend
             dir: backend
             ecr_repo: my-backend
-            task_def: backend/backend-taskdef.json
+            task_def: backend/backend-api-revision10.json
             container: backend
             ecs_service: backend-api-svc
 
