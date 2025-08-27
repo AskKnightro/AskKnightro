@@ -59,47 +59,47 @@ jobs:
             container: spring
             ecs_service: backend-api-svc
 
-        steps:
-          - name: Checkout
-            uses: actions/checkout@v4
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-          - name: Configure AWS credentials
-            uses: aws-actions/configure-aws-credentials@v4
-            with:
-              aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-              aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-              aws-region: ${{ env.AWS_REGION }}
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
 
-          - name: Login to ECR
-            uses: aws-actions/amazon-ecr-login@v2
+      - name: Login to ECR
+        uses: aws-actions/amazon-ecr-login@v2
 
-          - name: Set up QEMU
-            uses: docker/setup-qemu-action@v3
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
 
-          - name: Set up Docker Buildx
-            uses: docker/setup-buildx-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-          - name: Build and push image (multi-arch)
-            working-directory: ${{ matrix.service.dir }}
-            env:
-              IMAGE_TAG: ${{ github.sha }}
-            run: |
-              IMAGE_URI=${{ env.ECR_REGISTRY }}/${{ matrix.service.ecr_repo }}:${IMAGE_TAG}
-              docker buildx build --platform linux/amd64,linux/arm64 -t "$IMAGE_URI" --push .
-              echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
+      - name: Build and push image (multi-arch)
+        working-directory: ${{ matrix.service.dir }}
+        env:
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          IMAGE_URI=${{ env.ECR_REGISTRY }}/${{ matrix.service.ecr_repo }}:${IMAGE_TAG}
+          docker buildx build --platform linux/amd64,linux/arm64 -t "$IMAGE_URI" --push .
+          echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
 
-          - name: Render task definition with new image
-            id: render
-            uses: aws-actions/amazon-ecs-render-task-definition@v1
-            with:
-              task-definition: ${{ matrix.service.task_def }}
-              container-name: ${{ matrix.service.container }}
-              image: ${{ env.IMAGE_URI }}
+      - name: Render task definition with new image
+        id: render
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: ${{ matrix.service.task_def }}
+          container-name: ${{ matrix.service.container }}
+          image: ${{ env.IMAGE_URI }}
 
-          - name: Deploy task definition
-            uses: aws-actions/amazon-ecs-deploy-task-definition@v2
-            with:
-              task-definition: ${{ steps.render.outputs.task-definition }}
-              service: ${{ matrix.service.ecs_service }}
-              cluster: ${{ env.CLUSTER }}
-              wait-for-service-stability: true
+      - name: Deploy task definition
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+        with:
+          task-definition: ${{ steps.render.outputs['task-definition'] }}
+          service: ${{ matrix.service.ecs_service }}
+          cluster: ${{ env.CLUSTER }}
+          wait-for-service-stability: true
