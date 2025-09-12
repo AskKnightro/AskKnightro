@@ -7,8 +7,9 @@ public class TeacherDto {
     private Integer teacherId;
     private String name;
     private String email;
+    @com.fasterxml.jackson.annotation.JsonProperty(access = com.fasterxml.jackson.annotation.JsonProperty.Access.WRITE_ONLY)
+    private String password;
     private String department;
     private String profilePicture;
     private String bio;
-    // If you truly need it for create: private String password; // write-only, never return
 }
