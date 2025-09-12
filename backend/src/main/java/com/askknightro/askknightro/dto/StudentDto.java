@@ -8,6 +8,8 @@ import java.time.LocalDate;
 public class StudentDto{
     private Integer studentId;
     private String name;
+    @com.fasterxml.jackson.annotation.JsonProperty(access = com.fasterxml.jackson.annotation.JsonProperty.Access.WRITE_ONLY)
+    private String password;
     private String email;
     private String profilePicture;
     private String yearStanding;

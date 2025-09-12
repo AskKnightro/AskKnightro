@@ -8,14 +8,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-@Entity
-@Table(name = "Teacher")
+@NoArgsConstructor @AllArgsConstructor @Builder
+@Entity @Table(name = "Teacher")
+@JsonIgnoreProperties({"hibernateLazyInitializer","handler"})
 public class Teacher {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "teacher_id")
     private Integer teacherId;
 
@@ -28,7 +27,6 @@ public class Teacher {
     @Column(name = "profile_picture")
     private String profilePicture;
 
-    // store encrypted/hashed only
     private String password;
 
     @Column(columnDefinition = "TEXT")
