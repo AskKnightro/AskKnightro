@@ -1,0 +1,6 @@
+.footer { background:#222; color:#fff; padding:15px 0; text-align:right; width:100%; font-size:0.8rem; display:flex; justify-content:flex-end; flex-wrap:wrap; gap:24px; }
+.primary { margin-right:32px; }
+.link { color:#fff; margin:0 24px; text-decoration:none; }
+.link:hover { text-decoration:underline; }
+@media (max-width: 600px) { .footer { font-size:0.65rem; gap:12px; } .primary { margin-right:16px; } .link { margin:0 12px; } }
+@media (max-width: 400px) { .footer { font-size:0.58rem; padding:10px 0; } }
