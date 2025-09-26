@@ -12,15 +12,6 @@ public class MilvusClientService {
     private final MilvusClientV2 milvusClient;
 
     public MilvusClientService() {
-        String host = System.getenv("APP_MILVUS_HOST");
-        String port = System.getenv("APP_MILVUS_PORT");
-
-        if (host == null || port == null) {
-            throw new IllegalStateException("APP_MILVUS_HOST and APP_MILVUS_PORT must be set");
-        }
-
-        String uri = "http://" + host + ":" + port;
-
         this.milvusClient = new MilvusClientV2(
             ConnectConfig.builder()
                 .uri("http://standalone:19530")
