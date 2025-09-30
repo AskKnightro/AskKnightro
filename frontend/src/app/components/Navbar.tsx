@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import styles from "./Navbar.module.css";
 
 export default function Navbar() {
@@ -29,18 +30,18 @@ export default function Navbar() {
           />
         </div>
         <div className={styles.links}>
-          <a className={styles.link} href="/">
+          <Link className={styles.link} href="/">
             Home
-          </a>
-          <a className={styles.link} href="/student-dashboard">
+          </Link>
+          <Link className={styles.link} href="/student-dashboard">
             Dashboard
-          </a>
-          <a className={styles.link} href="/course">
+          </Link>
+          <Link className={styles.link} href="/course">
             Courses
-          </a>
-          <a className={styles.link} href="/view-profile">
+          </Link>
+          <Link className={styles.link} href="/view-profile">
             View Profile
-          </a>
+          </Link>
         </div>
         <button
           aria-label={open ? "Close menu" : "Open menu"}
@@ -54,38 +55,38 @@ export default function Navbar() {
         </button>
       </nav>
       <div id="mobile-menu" className={styles.mobileMenu} role="menu">
-        <a
+        <Link
           className={styles.mobileLink}
           role="menuitem"
           href="/"
           onClick={() => setOpen(false)}
         >
           Home
-        </a>
-        <a
+        </Link>
+        <Link
           className={styles.mobileLink}
           role="menuitem"
           href="/student-dashboard"
           onClick={() => setOpen(false)}
         >
           Dashboard
-        </a>
-        <a
+        </Link>
+        <Link
           className={styles.mobileLink}
           role="menuitem"
           href="/course"
           onClick={() => setOpen(false)}
         >
           Courses
-        </a>
-        <a
+        </Link>
+        <Link
           className={styles.mobileLink}
           role="menuitem"
           href="/view-profile"
           onClick={() => setOpen(false)}
         >
           View Profile
-        </a>
+        </Link>
       </div>
     </header>
   );
