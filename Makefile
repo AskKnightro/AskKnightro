@@ -1,5 +1,5 @@
 PROJECT ?= askknightro
-COMPOSE := docker compose -p $(PROJECT) -f docker-compose.yml -f milvus.yml
+COMPOSE := docker compose -p $(PROJECT) -f docker-compose.yml -f milvus.yml 
 
 # Defaults for convenience
 SERVICE ?= backend   # used by `logs` and `sh`
