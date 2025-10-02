@@ -7,6 +7,8 @@ RUN mvn -B -DskipTests package
 FROM eclipse-temurin:17-jre-jammy
 WORKDIR /app
 
+RUN apt
+
 COPY --from=build /src/target/*.jar /app/app.jar
 EXPOSE 8080
 ENV JAVA_TOOL_OPTIONS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75 -XX:+ExitOnOutOfMemoryError"

@@ -12,6 +12,7 @@ public class MilvusClientService {
     private final MilvusClientV2 milvusClient;
 
     public MilvusClientService() {
+
         this.milvusClient = new MilvusClientV2(
             ConnectConfig.builder()
                 .uri("http://standalone:19530")
