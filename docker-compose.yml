@@ -102,8 +102,6 @@ services:
         condition: service_healthy
       standalone:
         condition: service_healthy
-      milvus-migrate:
-        condition: service_completed_successfully
     ports: ["8080:8080"]
 
   frontend:
@@ -116,15 +114,14 @@ services:
     ports: ["3000:3000"]
 
   milvus-migrate:
-    image: python:3.11-slim
-    container_name: milvus_migrate
-    working_dir: /app
-    volumes:
-      - ./backend/src/main/resources/db/milvus_migrations:/app
+    build:
+      context: ./backend/src/main/resources/db/milvus_migrations
+      dockerfile: Dockerfile.milvus_migrate
     depends_on:
-      standalone:
-        condition: service_healthy
-    command: bash -c "pip install pymilvus && python migrate.py"
+      - standalone
+    entrypoint: ["python", "migrate.py"]
+    restart: "no"
+
 
 
 volumes:

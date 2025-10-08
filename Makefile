@@ -8,13 +8,13 @@ TAIL    ?= 100
 .PHONY: up build rebuild ps logs sh stop restart down down-v
 
 up:         ## Start/refresh containers
-	$(COMPOSE) up -d
+	$(COMPOSE) up -d --scale milvus-migrate=0
 
 build:      ## Build images
-	$(COMPOSE) build
+	$(COMPOSE) build milvus-migrate
 
 rebuild:    ## Rebuild images and recreate containers
-	$(COMPOSE) up -d --build --force-recreate
+	$(COMPOSE) up -d --build --force-recreate --scale milvus-migrate=0
 
 ps:         ## Show status
 	$(COMPOSE) ps
@@ -29,10 +29,14 @@ stop:       ## Stop containers
 	$(COMPOSE) stop
 
 restart:    ## Restart containers
-	$(COMPOSE) restart
+	$(COMPOSE) restart --scale milvus-migrate=0
 
 down:       ## Stop & remove containers (keep data)
 	$(COMPOSE) down
 
 down-v:     ## Stop & remove containers + VOLUMES (DELETES DATA)
 	$(COMPOSE) down -v
+
+migrate-milvus:
+	$(COMPOSE) run --rm milvus-migrate
+
