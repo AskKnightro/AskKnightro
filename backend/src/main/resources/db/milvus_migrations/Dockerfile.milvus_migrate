@@ -1,0 +1,12 @@
+FROM python:3.11-slim-bookworm
+
+WORKDIR /app
+
+# Install only pymilvus
+RUN pip install --no-cache-dir pymilvus
+
+# Copy everything from the current context
+COPY . /app
+COPY migrate.py /app
+
+ENTRYPOINT ["python", "migrate.py"]
