@@ -1,0 +1,348 @@
+.pageContainer {
+  background-color: white;
+  min-height: 100vh;
+  padding-top: 80px;
+}
+
+.mainContent {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 40px 20px;
+}
+
+.headerSection {
+  text-align: center;
+  margin-bottom: 40px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.pageTitle {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #333;
+  margin: 0 0 12px 0;
+}
+
+.pageSubtitle {
+  font-size: 1.125rem;
+  color: #666;
+  margin: 0;
+}
+
+.enrollmentContainer {
+  display: flex;
+  justify-content: center;
+}
+
+.enrollmentForm {
+  background-color: white;
+  border: 2px solid #e9ecef;
+  border-radius: 12px;
+  padding: 32px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 500px;
+}
+
+.inputGroup {
+  margin-bottom: 24px;
+}
+
+.label {
+  display: block;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8px;
+  font-size: 1rem;
+}
+
+.input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #dee2e6;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  outline: none;
+}
+
+.input:focus {
+  border-color: #ffd700;
+  box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.1);
+}
+
+.input:disabled {
+  background-color: #f8f9fa;
+  cursor: not-allowed;
+}
+
+.submitButton {
+  width: 100%;
+  background-color: #ffd700;
+  color: #333;
+  border: none;
+  padding: 14px 20px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-bottom: 20px;
+}
+
+.submitButton:hover:not(:disabled) {
+  background-color: #ffed4e;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.submitButton:disabled {
+  background-color: #e9ecef;
+  color: #6c757d;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.message {
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-top: 20px;
+  font-weight: 500;
+  text-align: center;
+}
+
+.message.success {
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.message.error {
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.helpSection {
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid #e9ecef;
+}
+
+.helpTitle {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 16px 0;
+}
+
+.helpList {
+  color: #666;
+  line-height: 1.6;
+  padding-left: 20px;
+  margin-bottom: 24px;
+}
+
+.helpList li {
+  margin-bottom: 8px;
+}
+
+.sampleCodes {
+  background-color: #f8f9fa;
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+}
+
+.sampleTitle {
+  font-weight: 600;
+  color: #495057;
+  margin: 0 0 12px 0;
+  font-size: 0.875rem;
+}
+
+.codeList {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.sampleCode {
+  background-color: #e9ecef;
+  color: #495057;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-family: "Courier New", monospace;
+  font-size: 0.875rem;
+  font-weight: 600;
+  border: 1px solid #adb5bd;
+}
+
+/* Confirmation Card Styles */
+.confirmationCard {
+  background-color: white;
+  border: 2px solid #28a745;
+  border-radius: 12px;
+  padding: 32px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 600px;
+}
+
+.confirmationTitle {
+  color: #28a745;
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin: 0 0 24px 0;
+  text-align: center;
+}
+
+.courseDetails {
+  margin-bottom: 32px;
+}
+
+.courseHeader {
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.courseName {
+  font-size: 1.375rem;
+  font-weight: bold;
+  color: #333;
+  margin: 0 0 8px 0;
+}
+
+.courseSection {
+  background-color: #ffd700;
+  color: #333;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.courseInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.infoItem {
+  display: flex;
+  gap: 12px;
+}
+
+.infoLabel {
+  font-weight: 600;
+  color: #495057;
+  min-width: 100px;
+  font-size: 0.875rem;
+}
+
+.infoValue {
+  color: #333;
+  font-size: 0.875rem;
+  flex: 1;
+}
+
+.confirmationActions {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+}
+
+.confirmButton {
+  background-color: #28a745;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.confirmButton:hover:not(:disabled) {
+  background-color: #218838;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.confirmButton:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.cancelButton {
+  background-color: transparent;
+  color: #6c757d;
+  border: 2px solid #6c757d;
+  padding: 10px 24px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.cancelButton:hover:not(:disabled) {
+  background-color: #6c757d;
+  color: white;
+  transform: translateY(-2px);
+}
+
+.cancelButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .mainContent {
+    padding: 20px 16px;
+  }
+
+  .pageTitle {
+    font-size: 2rem;
+  }
+
+  .enrollmentForm,
+  .confirmationCard {
+    padding: 24px 20px;
+  }
+
+  .confirmationActions {
+    flex-direction: column;
+  }
+
+  .confirmButton,
+  .cancelButton {
+    width: 100%;
+  }
+
+  .codeList {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .pageTitle {
+    font-size: 1.75rem;
+  }
+
+  .infoItem {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .infoLabel {
+    min-width: auto;
+    font-weight: 700;
+  }
+}

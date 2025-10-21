@@ -39,6 +39,9 @@ export default function Navbar() {
           <Link className={styles.link} href="/course">
             Courses
           </Link>
+          <Link className={styles.link} href="/course-enrollment">
+            Join Course
+          </Link>
           <Link className={styles.link} href="/view-profile">
             View Profile
           </Link>
@@ -78,6 +81,14 @@ export default function Navbar() {
           onClick={() => setOpen(false)}
         >
           Courses
+        </Link>
+        <Link
+          className={styles.mobileLink}
+          role="menuitem"
+          href="/course-enrollment"
+          onClick={() => setOpen(false)}
+        >
+          Join Course
         </Link>
         <Link
           className={styles.mobileLink}
