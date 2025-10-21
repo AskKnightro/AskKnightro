@@ -1,0 +1,49 @@
+.card {
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 240px;
+    max-width: 100%;
+    align-items: flex-start;
+}
+
+.link {
+    text-decoration: none;
+    color: inherit;
+    display: inline-block;
+}
+
+.card:hover {
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+}
+
+.title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #111827; /* gray-900 */
+    margin: 0;
+}
+
+.description {
+    font-size: 0.85rem;
+    color: #6b7280; /* gray-500 */
+    margin: 0;
+    line-height: 1.2;
+}
+
+.meta {
+    margin-top: 4px;
+    width: 100%;
+    display: flex;
+    justify-content: flex-start;
+    gap: 8px;
+}
+
+.questions {
+    font-size: 0.75rem;
+    color: #4b5563; /* gray-600 */
+}
