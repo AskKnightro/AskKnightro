@@ -2,12 +2,10 @@
 
 import HomeNavbar from "./components/HomeNavbar";
 import Footer from "./components/Footer";
-import Button from "./components/Button";
 import LandingCard from "./components/LandingCard";
 import FeatureSection from "./components/FeatureSection";
 import FAQ from "./components/FAQ";
 import HeroSection from "./components/HeroSection";
-import Link from "next/link";
 import styles from "./components/LandingCard.module.css";
 
 export default function Home() {
