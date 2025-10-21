@@ -61,7 +61,7 @@ export default function StudentCourseListingPage() {
             <p className={styles.subtitle}>
               Choose a class below to get personalized help from your AI
               Teaching Assistant. Each assistant is trained on materials
-              specific to that class, so you'll get accurate and targeted
+              specific to that class, so you&apos;ll get accurate and targeted
               support.
             </p>
           </div>
