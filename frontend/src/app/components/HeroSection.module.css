@@ -1,0 +1,179 @@
+.heroContainer {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  background-image: url("/pexels-marta-klement-636760-1438072.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.contentWrapper {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+}
+
+.textContent {
+  position: relative;
+  z-index: 10;
+  width: 50%;
+  padding: 80px 60px;
+  color: white;
+}
+
+.mainHeadline {
+  font-size: 4rem;
+  font-weight: bold;
+  line-height: 1.1;
+  margin: 0 0 24px 0;
+  color: white;
+}
+
+.subHeadline {
+  font-size: 1.5rem;
+  font-weight: 400;
+  line-height: 1.3;
+  margin: 0 0 32px 0;
+  color: white;
+  opacity: 0.95;
+}
+
+.bodyText {
+  font-size: 1.125rem;
+  line-height: 1.6;
+  margin: 0 0 40px 0;
+  color: white;
+  opacity: 0.9;
+  max-width: 500px;
+}
+
+.ctaContainer {
+  margin-top: 40px;
+}
+
+.imageContainer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+.heroImage {
+  object-fit: cover;
+  object-position: center;
+}
+
+.gradientOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    /* Bottom fade to white */ linear-gradient(
+      to bottom,
+      transparent 0%,
+      transparent 75%,
+      rgba(255, 255, 255, 0.3) 85%,
+      rgba(255, 255, 255, 0.8) 100%
+    ),
+    /* Left to right gradient for text readability */
+      linear-gradient(
+        to right,
+        rgba(0, 0, 0, 0.8) 0%,
+        rgba(0, 0, 0, 0.6) 30%,
+        rgba(0, 0, 0, 0.3) 50%,
+        transparent 70%
+      ),
+    /* Side fade effects */
+      linear-gradient(
+        to right,
+        rgba(0, 0, 0, 0.4) 0%,
+        transparent 15%,
+        transparent 85%,
+        rgba(0, 0, 0, 0.4) 100%
+      );
+  z-index: 5;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .textContent {
+    width: 55%;
+    padding: 60px 40px;
+  }
+
+  .mainHeadline {
+    font-size: 3.5rem;
+  }
+
+  .subHeadline {
+    font-size: 1.375rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .heroContainer {
+    min-height: 80vh;
+  }
+
+  .contentWrapper {
+    height: 80vh;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .textContent {
+    width: 100%;
+    padding: 40px 20px;
+    text-align: center;
+  }
+
+  .mainHeadline {
+    font-size: 2.5rem;
+  }
+
+  .subHeadline {
+    font-size: 1.25rem;
+  }
+
+  .bodyText {
+    font-size: 1rem;
+    max-width: none;
+  }
+
+  .gradientOverlay {
+    background: linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.7) 0%,
+      rgba(0, 0, 0, 0.5) 50%,
+      rgba(0, 0, 0, 0.7) 100%
+    );
+  }
+}
+
+@media (max-width: 480px) {
+  .textContent {
+    padding: 30px 16px;
+  }
+
+  .mainHeadline {
+    font-size: 2rem;
+  }
+
+  .subHeadline {
+    font-size: 1.125rem;
+  }
+
+  .ctaContainer {
+    margin-top: 32px;
+  }
+}

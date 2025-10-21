@@ -1,5 +1,5 @@
 .card {
-  background-color: #2a2a2a;
+  background-color: #333333;
   border-radius: 16px;
   padding: 20px 16px;
   text-align: center;
@@ -23,7 +23,6 @@
 .image {
   border-radius: 50%;
   object-fit: cover;
-  border: 3px solid #ffffff;
 }
 
 .title {
@@ -44,7 +43,11 @@
 
 .section {
   text-align: center;
-  margin-bottom: 48px;
+  background-color: #87ceeb;
+  background-image: radial-gradient(circle, white 2px, transparent 2px);
+  background-size: 30px 30px;
+  padding: 60px 20px;
+  width: 100%;
 }
 
 .mainTitle {
@@ -68,7 +71,7 @@
   justify-content: center;
   flex-wrap: wrap;
   max-width: 1200px;
-  margin: 0 auto;
+  margin: 40px auto 0 auto;
 }
 
 @media (max-width: 768px) {
