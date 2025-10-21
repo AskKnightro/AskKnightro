@@ -1,0 +1,146 @@
+.dashboardContainer {
+  margin-left: 200px; /* Account for sidebar width */
+  min-height: 100vh;
+  background-color: white;
+}
+
+.mainContent {
+  padding: 40px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.welcomeSection {
+  position: relative;
+  margin-bottom: 40px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.welcomeTitle {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #333;
+  margin: 0 0 12px 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.profileIcon {
+  font-size: 1.5rem;
+}
+
+.welcomeSubtitle {
+  font-size: 1.125rem;
+  color: #666;
+  margin: 0;
+}
+
+.chartVisualization {
+  position: absolute;
+  top: 0;
+  right: 0;
+  opacity: 0.6;
+}
+
+.cardsGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  margin-bottom: 40px;
+}
+
+.topRow {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.bottomRow {
+  display: flex;
+  width: 100%;
+}
+
+.bottomRow > div {
+  flex: 1;
+}
+
+.backLinkContainer {
+  display: flex;
+  justify-content: center;
+  padding-top: 20px;
+  border-top: 1px solid #e5e5e5;
+}
+
+.backLink {
+  color: #ffd700;
+  text-decoration: none;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.backLink:hover {
+  background-color: #ffd700;
+  color: #333;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .dashboardContainer {
+    margin-left: 200px;
+  }
+
+  .mainContent {
+    padding: 24px;
+  }
+
+  .topRow {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboardContainer {
+    margin-left: 80px; /* Compact sidebar on mobile */
+  }
+
+  .mainContent {
+    padding: 20px;
+  }
+
+  .welcomeTitle {
+    font-size: 2rem;
+  }
+
+  .topRow {
+    grid-template-columns: 1fr;
+  }
+
+  .chartVisualization {
+    position: static;
+    margin-top: 16px;
+    display: flex;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboardContainer {
+    margin-left: 0;
+    padding-top: 60px; /* Account for potential mobile nav changes */
+  }
+
+  .mainContent {
+    padding: 16px;
+  }
+
+  .welcomeTitle {
+    font-size: 1.75rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}

@@ -1,0 +1,30 @@
+.teacherNavbar {
+  position: fixed;
+  left: 0;
+  top: 60px; /* Offset for the main navbar */
+  width: 200px;
+  height: calc(100vh - 60px);
+  background-color: #ffd700; /* Bright yellow */
+  border-right: 2px solid #e6c200;
+  z-index: 100;
+  overflow-y: auto;
+}
+
+.navItems {
+  display: flex;
+  flex-direction: column;
+  padding: 20px 0;
+  gap: 4px;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .teacherNavbar {
+    width: 80px;
+  }
+
+  /* Hide labels on mobile for compact view */
+  .teacherNavbar .navItems span {
+    display: none;
+  }
+}

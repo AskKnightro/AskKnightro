@@ -32,13 +32,6 @@ export default function HeroSection() {
         </div>
         <div className={styles.imageContainer}>
           <div className={styles.gradientOverlay}></div>
-          <Image
-            src="/student-hero.jpg"
-            alt="Smiling student with raised hand at desk"
-            fill
-            className={styles.heroImage}
-            priority
-          />
         </div>
       </div>
     </section>
