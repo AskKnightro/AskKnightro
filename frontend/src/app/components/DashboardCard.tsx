@@ -7,6 +7,7 @@ interface DashboardCardProps {
   content: string[];
   buttonText?: string;
   isHighlighted?: boolean;
+  onButtonClick?: () => void;
 }
 
 const DashboardCard: React.FC<DashboardCardProps> = ({
@@ -14,6 +15,7 @@ const DashboardCard: React.FC<DashboardCardProps> = ({
   content,
   buttonText = "View Full Info",
   isHighlighted = false,
+  onButtonClick,
 }) => {
   return (
     <div
@@ -28,7 +30,7 @@ const DashboardCard: React.FC<DashboardCardProps> = ({
         ))}
       </ul>
       <div className={styles.buttonContainer}>
-        <Button label={buttonText} />
+        <Button label={buttonText} onClick={onButtonClick} />
       </div>
     </div>
   );

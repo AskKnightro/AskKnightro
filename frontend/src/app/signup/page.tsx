@@ -15,6 +15,7 @@ export default function Page() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [userRole, setUserRole] = useState("");
   const [agreeToTerms, setAgreeToTerms] = useState(false);
   const [emailError, setEmailError] = useState("");
   const [formError, setFormError] = useState("");
@@ -59,6 +60,11 @@ export default function Page() {
       return;
     }
 
+    if (!userRole) {
+      setFormError("Please select whether you are a student or teacher");
+      return;
+    }
+
     if (!password) {
       setFormError("Password is required");
       return;
@@ -79,6 +85,7 @@ export default function Page() {
       lastName,
       email,
       password,
+      userRole,
       agreeToTerms,
     });
   };
@@ -156,6 +163,34 @@ export default function Page() {
                     onChange={(e) => setLastName(e.target.value)}
                     placeholder="Enter your last name"
                   />
+                </div>
+              </div>
+
+              <div className={styles.inputGroup}>
+                <label className={styles.label}>I am a...</label>
+                <div className={styles.roleSelection}>
+                  <label className={styles.roleOption}>
+                    <input
+                      type="radio"
+                      name="userRole"
+                      value="student"
+                      checked={userRole === "student"}
+                      onChange={(e) => setUserRole(e.target.value)}
+                      className={styles.radioInput}
+                    />
+                    <span className={styles.radioLabel}>Student</span>
+                  </label>
+                  <label className={styles.roleOption}>
+                    <input
+                      type="radio"
+                      name="userRole"
+                      value="teacher"
+                      checked={userRole === "teacher"}
+                      onChange={(e) => setUserRole(e.target.value)}
+                      className={styles.radioInput}
+                    />
+                    <span className={styles.radioLabel}>Teacher</span>
+                  </label>
                 </div>
               </div>
 

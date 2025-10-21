@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { useRouter } from "next/navigation";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import TeacherNavbar from "../components/TeacherNavbar";
@@ -9,33 +10,17 @@ import Link from "next/link";
 import styles from "./teacher-course-dashboard.module.css";
 
 const TeacherCourseDashboard: React.FC = () => {
-  const courseInfoContent = [
-    "Intro to Psychology - PSY101",
-    "Fall 2025 - Section 002",
-    "32 Students Enrolled",
-    "Meeting: MWF 10:00-10:50 AM",
-  ];
+  const router = useRouter();
 
-  const materialsContent = [
-    "Lecture 5 slides.pdf - Uploaded 2 days ago",
-    "Chapter 3 Reading.pdf - Uploaded 1 week ago",
-    "Quiz 2 Instructions.docx - Uploaded 3 days ago",
-    "Homework Assignment 4.pdf - Uploaded 5 days ago",
-  ];
+  // All content arrays are now empty - to be populated from database
+  const courseInfoContent: string[] = [];
+  const materialsContent: string[] = [];
+  const studentsContent: string[] = [];
 
-  const queriesContent = [
-    "2h ago - Taylor M. asked about Quiz 2",
-    "Yesterday - Jordan L. requested extension",
-    "2 days ago - Alex P. question on Chapter 3",
-    "3 days ago - Sam R. grade inquiry",
-  ];
-
-  const escalationsContent = [
-    "Quiz Flag - Today",
-    "Upload Fail - Apr 15",
-    "Grade Issue - Apr 12",
-    "System Error - Apr 10",
-  ];
+  // Navigation functions
+  const navigateToCourseInfo = () => router.push("/course-info");
+  const navigateToMaterials = () => router.push("/materials-overview");
+  const navigateToStudents = () => router.push("/students-in-course");
 
   return (
     <>
@@ -77,26 +62,19 @@ const TeacherCourseDashboard: React.FC = () => {
                 title="Course Information"
                 content={courseInfoContent}
                 buttonText="View Full Info"
+                onButtonClick={navigateToCourseInfo}
               />
               <DashboardCard
                 title="Materials Overview"
                 content={materialsContent}
                 buttonText="View All"
-                isHighlighted={true}
+                onButtonClick={navigateToMaterials}
               />
               <DashboardCard
-                title="Recent Student Queries"
-                content={queriesContent}
+                title="View Students"
+                content={studentsContent}
                 buttonText="View All"
-              />
-            </div>
-
-            {/* Row 2: Full-width card */}
-            <div className={styles.bottomRow}>
-              <DashboardCard
-                title="Latest Instructor Escalations"
-                content={escalationsContent}
-                buttonText="View All"
+                onButtonClick={navigateToStudents}
               />
             </div>
           </div>

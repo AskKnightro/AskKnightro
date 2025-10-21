@@ -1,6 +1,6 @@
-.dashboardContainer {
-  margin-left: 200px; /* Account for sidebar width */
-  padding-top: 50px; /* Account for fixed main navbar */
+.pageContainer {
+  margin-left: 200px;
+  padding-top: 50px;
   min-height: 100vh;
   background-color: white;
 }
@@ -11,60 +11,55 @@
   margin: 0 auto;
 }
 
-.welcomeSection {
-  position: relative;
+.headerSection {
   margin-bottom: 40px;
   padding-bottom: 20px;
   border-bottom: 2px solid #f0f0f0;
 }
 
-.welcomeTitle {
+.pageTitle {
   font-size: 2.5rem;
   font-weight: bold;
   color: #333;
   margin: 0 0 12px 0;
-  display: flex;
-  align-items: center;
-  gap: 12px;
 }
 
-.profileIcon {
-  font-size: 1.5rem;
-}
-
-.welcomeSubtitle {
+.pageSubtitle {
   font-size: 1.125rem;
   color: #666;
   margin: 0;
 }
 
-.chartVisualization {
-  position: absolute;
-  top: 0;
-  right: 0;
-  opacity: 0.6;
-}
-
-.cardsGrid {
+.contentSection {
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: 24px;
   margin-bottom: 40px;
 }
 
-.topRow {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 24px;
+.materialsCard {
+  background-color: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e5e5;
 }
 
-.bottomRow {
-  display: flex;
-  width: 100%;
+.sectionTitle {
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: #333;
+  margin: 0 0 16px 0;
+  border-bottom: 2px solid #f0f0f0;
+  padding-bottom: 8px;
 }
 
-.bottomRow > div {
-  flex: 1;
+.placeholder {
+  color: #666;
+  font-style: italic;
+  margin: 0;
+  padding: 20px 0;
+  text-align: center;
 }
 
 .backLinkContainer {
@@ -90,58 +85,40 @@
 
 /* Responsive Design */
 @media (max-width: 1024px) {
-  .dashboardContainer {
+  .pageContainer {
     margin-left: 200px;
   }
 
   .mainContent {
     padding: 24px;
   }
-
-  .topRow {
-    grid-template-columns: repeat(2, 1fr);
-  }
 }
 
 @media (max-width: 768px) {
-  .dashboardContainer {
-    margin-left: 80px; /* Compact sidebar on mobile */
+  .pageContainer {
+    margin-left: 80px;
   }
 
   .mainContent {
     padding: 20px;
   }
 
-  .welcomeTitle {
+  .pageTitle {
     font-size: 2rem;
-  }
-
-  .topRow {
-    grid-template-columns: 1fr;
-  }
-
-  .chartVisualization {
-    position: static;
-    margin-top: 16px;
-    display: flex;
-    justify-content: center;
   }
 }
 
 @media (max-width: 480px) {
-  .dashboardContainer {
+  .pageContainer {
     margin-left: 0;
-    padding-top: 60px; /* Account for potential mobile nav changes */
+    padding-top: 60px;
   }
 
   .mainContent {
     padding: 16px;
   }
 
-  .welcomeTitle {
+  .pageTitle {
     font-size: 1.75rem;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
   }
 }
