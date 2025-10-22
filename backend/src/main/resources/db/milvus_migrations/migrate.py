@@ -14,11 +14,11 @@ def migrate():
         spec.loader.exec_module(migration_module)
 
         if hasattr(migration_module, "create_collections"):
-            migration_module.create_collections("final_test")
+            migration_module.create_collections("materials_chunks")
         if hasattr(migration_module, "create_indexes"):
-            migration_module.create_indexes("final_test")
-        if hasattr(migration_module, "create_sample_data"):
-            migration_module.create_sample_data("final_test")
+            migration_module.create_indexes("materials_chunks")
+        if hasattr(migration_module, "smoke_test_insert"):
+            migration_module.smoke_test_insert("materials_chunks")
 
         print(f"Executed migration: {file}")
 
