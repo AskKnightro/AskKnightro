@@ -1,5 +1,5 @@
 PROJECT ?= askknightro
-COMPOSE := docker compose -p $(PROJECT) -f docker-compose.yml -f milvus.yml
+COMPOSE := docker compose -p $(PROJECT) -f docker-compose.yml -f milvus.yml 
 
 # Defaults for convenience
 SERVICE ?= backend   # used by `logs` and `sh`
@@ -14,7 +14,7 @@ build:      ## Build images
 	$(COMPOSE) build
 
 rebuild:    ## Rebuild images and recreate containers
-	$(COMPOSE) up -d --build --force-recreate
+	$(COMPOSE) up -d --build --force-recreate 
 
 ps:         ## Show status
 	$(COMPOSE) ps
@@ -36,3 +36,7 @@ down:       ## Stop & remove containers (keep data)
 
 down-v:     ## Stop & remove containers + VOLUMES (DELETES DATA)
 	$(COMPOSE) down -v
+
+migrate-milvus:
+	$(COMPOSE) run --rm milvus-migrate
+

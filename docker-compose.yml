@@ -4,36 +4,78 @@ services:
   postgres:
     image: postgres:16-alpine
     environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    ports: ["5432:5432"]
+      POSTGRES_DB: ${POSTGRES_DB:-askknightro}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-root}
+    ports: ["5433:5432"]    # host:container
     volumes:
       - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   backend:
-    build: { context: ./backend }
+    build:
+      context: ./backend
     environment:
-      SPRING_PROFILES_ACTIVE: docker
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
-      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
-      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
-      APP_MILVUS_HOST: standalone
-      APP_MILVUS_PORT: 19530
+      # Postgres: inside Docker, use service DNS + container port
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-askknightro}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-postgres}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-root}
+
+      # Spring AI OpenAI (set in your shell or .env, do NOT hardcode)
+      SPRING_AI_OPENAI_API_KEY: ${SPRING_AI_OPENAI_API_KEY}
+
+      SPRING_AI_VECTORSTORE_MILVUS_CLIENT_HOST: standalone
+      SPRING_AI_VECTORSTORE_MILVUS_CLIENT_PORT: 19530
+      SPRING_AI_VECTORSTORE_MILVUS_CLIENT_SECURE: "false"
+      SPRING_AI_VECTORSTORE_MILVUS_DATABASENAME: default
+      SPRING_AI_VECTORSTORE_MILVUS_COLLECTION_NAME: vector_store4
+      SPRING_AI_VECTORSTORE_MILVUS_EMBEDDINGDIMENSION: "1536"
+      SPRING_AI_VECTORSTORE_MILVUS_INDEXTYPE: IVF_FLAT
+      SPRING_AI_VECTORSTORE_MILVUS_METRICTYPE: COSINE
+
     depends_on:
       postgres:
-        condition: service_started
+        condition: service_healthy
       standalone:
         condition: service_healthy
     ports: ["8080:8080"]
 
   frontend:
-    build: { context: ./frontend }
+    build:
+      context: ./frontend
     environment:
       NEXT_PUBLIC_API_BASE_URL: http://localhost:8080
     depends_on:
       - backend
     ports: ["3000:3000"]
 
+  milvus-migrate:
+    build:
+      context: ./backend/src/main/resources/db/milvus_migrations
+      dockerfile: Dockerfile.milvus_migrate
+    depends_on:
+      - standalone
+    entrypoint: ["python", "migrate.py"]
+    restart: "no"
+
+  attu:
+    image: zilliz/attu:latest
+    ports:
+      - "8000:3000"
+    depends_on:
+      - standalone   # your Milvus service name
+    # If you want, you can preconfigure the URL:
+    environment:
+      - MILVUS_URL=http://standalone:19530
+
+
+
 volumes:
+  etcd-data:
+  minio-data:
+  milvus-data:
   pgdata:
