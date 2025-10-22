@@ -14,7 +14,7 @@ build:      ## Build images
 	$(COMPOSE) build
 
 rebuild:    ## Rebuild images and recreate containers
-	$(COMPOSE) up -d --build --force-recreate 
+	$(COMPOSE) up -d --build --force-recreate
 
 ps:         ## Show status
 	$(COMPOSE) ps
