@@ -29,6 +29,3 @@ public interface CourseManagementRepository extends JpaRepository<Course, Intege
         """, nativeQuery = true)
     List<Course> findAllByTeacherId(@Param("teacherId") Integer teacherId);
 }
-{
-
-}
