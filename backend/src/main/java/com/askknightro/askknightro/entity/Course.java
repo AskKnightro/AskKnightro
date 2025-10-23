@@ -11,9 +11,10 @@ import java.util.List;
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 @Entity @Table(name = "Class")
 @JsonIgnoreProperties({"hibernateLazyInitializer","handler"})
-public class CourseClass {
+public class Course {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "class_id")
     private Integer classId;
 
@@ -34,16 +35,4 @@ public class CourseClass {
 
     @Column(name = "shard_id")
     private String shardId;
-
-    @OneToMany(mappedBy = "courseClass", fetch = FetchType.LAZY)
-    @Builder.Default
-    private List<CourseMaterial> materials = new ArrayList<>();
-
-    @OneToMany(mappedBy = "courseClass", fetch = FetchType.LAZY)
-    @Builder.Default
-    private List<Enrollment> enrollments = new ArrayList<>();
-
-    @OneToMany(mappedBy = "courseClass", fetch = FetchType.LAZY)
-    @Builder.Default
-    private List<ChatSession> chatSessions = new ArrayList<>();
 }
