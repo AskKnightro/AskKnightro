@@ -9,6 +9,7 @@ import com.askknightro.askknightro.entity.Student;
 import com.askknightro.askknightro.repository.CourseManagementRepository;
 import com.askknightro.askknightro.repository.EnrollmentRepository;
 import com.askknightro.askknightro.repository.StudentRepository;
+import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -83,6 +84,11 @@ public class EnrollmentService
                 .orElseThrow(() -> new EntityNotFoundException(
                         "Student with id " + enrollmentDto.getStudentId() + " not found"
                 ));
+
+//        List<Course> studentCourseList = courseManagementRepository.findAllByStudentId(student.getStudentId());
+//        if(studentCourseList.contains(courseToEnroll)) {
+//            throw new EntityExistsException("Student already enrolled in course");
+//        }
 
         Enrollment enrollment = Enrollment.builder()
                 .student(student)
