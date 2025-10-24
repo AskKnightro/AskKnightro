@@ -1,8 +1,15 @@
 package com.askknightro.askknightro.service;
 
+import com.askknightro.askknightro.dto.EnrollmentDto;
+import com.askknightro.askknightro.dto.EnrollmentReqDto;
 import com.askknightro.askknightro.dto.StudentDto;
+import com.askknightro.askknightro.entity.Course;
 import com.askknightro.askknightro.entity.Enrollment;
+import com.askknightro.askknightro.entity.Student;
+import com.askknightro.askknightro.repository.CourseManagementRepository;
 import com.askknightro.askknightro.repository.EnrollmentRepository;
+import com.askknightro.askknightro.repository.StudentRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -16,7 +23,9 @@ public class EnrollmentService
 {
 
     private final EnrollmentRepository enrollmentRepository;
+    private final CourseManagementRepository courseManagementRepository;
     private final StudentService studentService;
+    private final StudentRepository studentRepository;
 
     // Service method for retrieving a list of Students of a given Course
     public List<StudentDto> readStudentList(int course_id)
@@ -58,5 +67,31 @@ public class EnrollmentService
 
         // Delete that enrollment row
         enrollmentRepository.delete(enrollment);
+    }
+
+    public void addEnrollment(EnrollmentReqDto enrollmentDto) {
+        Course courseToEnroll;
+        try {
+            courseToEnroll = courseManagementRepository.findByEnrollmentCode(enrollmentDto.getEnrollmentCode());
+        } catch (Exception e) {
+            throw new EntityNotFoundException(
+                    "Course with code " + enrollmentDto.getEnrollmentCode() + " not found"
+            );
+        }
+
+        Student student = studentRepository.findById(enrollmentDto.getStudentId())
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Student with id " + enrollmentDto.getStudentId() + " not found"
+                ));
+
+        Enrollment enrollment = Enrollment.builder()
+                .student(student)
+                .courseClass(courseToEnroll)
+                .build();
+
+        student.getEnrollments().add(enrollment);
+
+        enrollmentRepository.save(enrollment);
+        studentRepository.save(student);
     }
 }

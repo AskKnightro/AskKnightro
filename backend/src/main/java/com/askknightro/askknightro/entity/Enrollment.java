@@ -3,6 +3,8 @@ package com.askknightro.askknightro.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import org.hibernate.annotations.CreationTimestamp;
+import org.springframework.data.annotation.CreatedDate;
 
 import java.time.LocalDateTime;
 
@@ -12,6 +14,7 @@ import java.time.LocalDateTime;
 public class Enrollment {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "enrollment_id")
     private Integer enrollmentId;
 
@@ -23,6 +26,7 @@ public class Enrollment {
     @JoinColumn(name = "class_id")
     private Course courseClass;
 
+    @CreationTimestamp
     @Column(name = "time_created")
     private LocalDateTime timeCreated;
 }
