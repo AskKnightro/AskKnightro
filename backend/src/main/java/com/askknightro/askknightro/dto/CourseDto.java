@@ -4,7 +4,7 @@ package com.askknightro.askknightro.dto;
 import lombok.*;
 
 @Data @NoArgsConstructor @AllArgsConstructor @Builder
-public class CourseClassDto {
+public class CourseDto {
     private Integer classId;
     private String enrollmentCode;
     private String courseName;

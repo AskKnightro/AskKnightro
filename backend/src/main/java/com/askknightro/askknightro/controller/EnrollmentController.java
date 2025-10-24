@@ -1,5 +1,6 @@
 package com.askknightro.askknightro.controller;
 
+import com.askknightro.askknightro.dto.EnrollmentReqDto;
 import com.askknightro.askknightro.dto.StudentDto;
 import com.askknightro.askknightro.service.EnrollmentService;
 import lombok.AllArgsConstructor;
@@ -9,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 // Controller for managing Enrollments in a course
-@RequestMapping("api/users/enrollments")
+@RequestMapping("api/enrollments")
 @RestController
 @AllArgsConstructor
 public class EnrollmentController
@@ -26,7 +27,7 @@ public class EnrollmentController
     }
 
     // Endpoint for fetching single student of a given course
-    @GetMapping("/{course_id}/students/{student_id}")
+    @GetMapping("/{user_id}")
     public ResponseEntity<StudentDto> readStudent(@PathVariable int course_id, @PathVariable int student_id)
     {
         StudentDto dto = enrollmentService.readStudent(course_id, student_id);
@@ -38,6 +39,14 @@ public class EnrollmentController
     public ResponseEntity<Void> deleteStudent(@PathVariable int course_id, @PathVariable int student_id)
     {
         enrollmentService.deleteStudent(course_id, student_id);
+        return ResponseEntity.noContent().build();
+    }
+
+    //Endpoint for adding a student to a course
+    @PostMapping("/enroll")
+    public ResponseEntity<Void> addStudent(@RequestBody EnrollmentReqDto reqDto)
+    {
+        enrollmentService.addEnrollment(reqDto);
         return ResponseEntity.noContent().build();
     }
 }

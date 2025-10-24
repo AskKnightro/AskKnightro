@@ -34,5 +34,5 @@ public class Teacher {
 
     @OneToMany(mappedBy = "teacher", fetch = FetchType.LAZY)
     @Builder.Default
-    private List<CourseClass> courseClasses = new ArrayList<>();
+    private List<Course> courseClasses = new ArrayList<>();
 }

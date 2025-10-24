@@ -23,7 +23,7 @@ public class ChatSession {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "class_id")
-    private CourseClass courseClass;
+    private Course courseClass;
 
     @Column(name = "start_time")
     private LocalDateTime startTime;
