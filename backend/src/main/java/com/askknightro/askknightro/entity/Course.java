@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
-@Entity @Table(name = "Class")
+@Entity @Table(name = "class")
 @JsonIgnoreProperties({"hibernateLazyInitializer","handler"})
 public class Course {
 
