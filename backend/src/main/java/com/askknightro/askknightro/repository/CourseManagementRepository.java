@@ -6,6 +6,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface CourseManagementRepository extends JpaRepository<Course, Integer> {
@@ -30,5 +31,9 @@ public interface CourseManagementRepository extends JpaRepository<Course, Intege
     List<Course> findAllByTeacherId(@Param("teacherId") Integer teacherId);
 
     Course findByEnrollmentCode(String enrollmentCode);
+
+    // Find course by enrollment code
+    @Query(value = "SELECT * FROM class c WHERE c.enrollment_code = :code LIMIT 1", nativeQuery = true)
+    Optional<Course> findOptionalByEnrollmentCode(@Param("code") String code);
 
 }
