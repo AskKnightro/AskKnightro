@@ -13,11 +13,12 @@ import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-// Service method for Student Management/Enrollments
+ // Service method for Student Management/Enrollments
 @Service
 @RequiredArgsConstructor
 public class EnrollmentService
@@ -70,34 +71,33 @@ public class EnrollmentService
         enrollmentRepository.delete(enrollment);
     }
 
+    @Transactional
     public void addEnrollment(EnrollmentReqDto enrollmentDto) {
-        Course courseToEnroll;
-        try {
-            courseToEnroll = courseManagementRepository.findByEnrollmentCode(enrollmentDto.getEnrollmentCode());
-        } catch (Exception e) {
-            throw new EntityNotFoundException(
-                    "Course with code " + enrollmentDto.getEnrollmentCode() + " not found"
-            );
-        }
+        // 1) Course by code (404 if not found)
+        Course courseToEnroll = courseManagementRepository
+                .findOptionalByEnrollmentCode(enrollmentDto.getEnrollmentCode())
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "No course found for enrollment code '" + enrollmentDto.getEnrollmentCode() + "'."));
 
+        // 2) Student exists (404 if not found)
         Student student = studentRepository.findById(enrollmentDto.getStudentId())
                 .orElseThrow(() -> new EntityNotFoundException(
-                        "Student with id " + enrollmentDto.getStudentId() + " not found"
-                ));
+                        "Student with id " + enrollmentDto.getStudentId() + " not found."));
 
-//        List<Course> studentCourseList = courseManagementRepository.findAllByStudentId(student.getStudentId());
-//        if(studentCourseList.contains(courseToEnroll)) {
-//            throw new EntityExistsException("Student already enrolled in course");
-//        }
+        // 3) Already enrolled? (409)
+        boolean already = enrollmentRepository.existsByClassIdAndStudentIdNative(
+                courseToEnroll.getClassId(), student.getStudentId());
 
+        if (already) {
+            throw new EntityExistsException("You are already enrolled in this course.");
+        }
+
+        // 4) Save
         Enrollment enrollment = Enrollment.builder()
                 .student(student)
                 .courseClass(courseToEnroll)
                 .build();
 
-        student.getEnrollments().add(enrollment);
-
         enrollmentRepository.save(enrollment);
-        studentRepository.save(student);
     }
 }
