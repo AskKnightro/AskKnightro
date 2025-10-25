@@ -1,18 +1,36 @@
 -- V4__make_chat_message_foreign_keys_nullable.sql
 
--- Drop the existing foreign key constraints
-ALTER TABLE Chat_Message
-DROP CONSTRAINT IF EXISTS fk_chat_message_student,
-DROP CONSTRAINT IF EXISTS fk_chat_message_class;
+-- 1) Add columns (nullable) if they don't exist
+ALTER TABLE chat_message
+    ADD COLUMN IF NOT EXISTS student_id INT,
+    ADD COLUMN IF NOT EXISTS class_id   INT;
 
--- Add them back but allow NULL values (don't enforce for NULL)
-ALTER TABLE Chat_Message
-ADD CONSTRAINT fk_chat_message_student
-    FOREIGN KEY (student_id)
-    REFERENCES Student(student_id)
-    ON DELETE SET NULL,
+-- 2) Drop constraints by expected names (no-op if not present)
+ALTER TABLE chat_message
+    DROP CONSTRAINT IF EXISTS fk_chat_message_student,
+    DROP CONSTRAINT IF EXISTS fk_chat_message_class;
 
-ADD CONSTRAINT fk_chat_message_class
-    FOREIGN KEY (class_id)
-    REFERENCES Class(class_id)
-    ON DELETE SET NULL;
+-- 3) Add FK constraints only if they don't already exist
+DO $$
+    BEGIN
+        IF NOT EXISTS (
+            SELECT 1 FROM pg_constraint WHERE conname = 'fk_chat_message_student'
+        ) THEN
+            ALTER TABLE chat_message
+                ADD CONSTRAINT fk_chat_message_student
+                    FOREIGN KEY (student_id)
+                        REFERENCES student(student_id)
+                        ON DELETE SET NULL;
+        END IF;
+
+        IF NOT EXISTS (
+            SELECT 1 FROM pg_constraint WHERE conname = 'fk_chat_message_class'
+        ) THEN
+            ALTER TABLE chat_message
+                ADD CONSTRAINT fk_chat_message_class
+                    FOREIGN KEY (class_id)
+                        REFERENCES class(class_id)
+                        ON DELETE SET NULL;
+        END IF;
+    END
+$$;
