@@ -12,4 +12,6 @@ public class TeacherDto {
     private String department;
     private String profilePicture;
     private String bio;
+    private String cognitoSub;
+    private String cognitoUsername;
 }

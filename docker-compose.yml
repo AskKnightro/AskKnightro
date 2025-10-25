@@ -19,11 +19,14 @@ services:
   backend:
     build:
       context: ./backend
+    env_file:
+      - .env
     environment:
       # Postgres: inside Docker, use service DNS + container port
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-askknightro}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-postgres}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-root}
+      
 
       # Spring AI OpenAI (set in your shell or .env, do NOT hardcode)
       SPRING_AI_OPENAI_API_KEY: ${SPRING_AI_OPENAI_API_KEY}

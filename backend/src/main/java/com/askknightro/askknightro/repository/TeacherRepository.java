@@ -9,4 +9,5 @@ import org.springframework.stereotype.Repository;
 public interface TeacherRepository extends JpaRepository<Teacher, Integer>
 {
     boolean existsByEmail(String email);
+    boolean existsByCognitoSub(String cognitoSub);
 }

@@ -16,11 +16,14 @@ public class TeacherService
 
     private final TeacherRepository teacherRepository;
     private final PasswordEncoder passwordEncoder;
+    private final IdentityProvisioningService idp;
 
     // Method for creating a Teacher Entity
     public TeacherDto createTeacher(TeacherDto teacherDto)
     {
         if (teacherRepository.existsByEmail(teacherDto.getEmail())) throw new RuntimeException("Email taken"); // Checking for duplicate emails
+
+        var id = idp.createTeacherIdentity(teacherDto.getEmail(), teacherDto.getName());
 
         Teacher teacherEntity = Teacher.builder()
                 .name(teacherDto.getName())
@@ -31,10 +34,17 @@ public class TeacherService
                 .password(teacherDto.getPassword() == null || teacherDto.getPassword().isBlank()
                         ? null
                         : passwordEncoder.encode(teacherDto.getPassword()))
+                .cognitoSub(id.sub())
+                .cognitoUsername(id.username())
                 .build();
 
         // Saving to Postgres DB
-        teacherRepository.save(teacherEntity);
+        try {
+                teacherRepository.save(teacherEntity);
+        } catch (Exception ex) {
+                try { idp.disableOrDelete(id.username()); } catch (Exception ignore) {}
+                throw ex;
+        }
 
         return TeacherDto.builder()
                 .teacherId(teacherEntity.getTeacherId())
@@ -98,6 +108,13 @@ public class TeacherService
     {
         Teacher teacher = teacherRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Teacher not found with id: " + id));
+
+        String usernameOrSub = (teacher.getCognitoUsername() != null) ? teacher.getCognitoUsername() : teacher.getCognitoSub();
+        if (usernameOrSub != null) {
+                try { idp.disableOrDelete(usernameOrSub); } catch (Exception e) {
+                // decide: log and continue, or rethrow to block deletion
+                }
+        }
 
         teacherRepository.delete(teacher);
     }

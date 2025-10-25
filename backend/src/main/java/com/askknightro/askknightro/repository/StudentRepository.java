@@ -8,5 +8,8 @@ import com.askknightro.askknightro.entity.Student;
 @Repository
 public interface StudentRepository extends JpaRepository<Student, Integer>
 {
+
     boolean existsByEmail(String email);
+    boolean existsByCognitoSub(String cognitoSub);
+
 }
