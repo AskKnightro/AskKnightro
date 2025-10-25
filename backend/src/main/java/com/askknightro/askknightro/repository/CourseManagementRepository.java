@@ -28,4 +28,7 @@ public interface CourseManagementRepository extends JpaRepository<Course, Intege
         ORDER BY c.class_id
         """, nativeQuery = true)
     List<Course> findAllByTeacherId(@Param("teacherId") Integer teacherId);
+
+    Course findByEnrollmentCode(String enrollmentCode);
+
 }

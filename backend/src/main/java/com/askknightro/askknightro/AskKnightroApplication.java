@@ -9,5 +9,4 @@ public class AskKnightroApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(AskKnightroApplication.class, args);
 	}
-
 }
