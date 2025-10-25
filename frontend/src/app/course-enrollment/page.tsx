@@ -22,9 +22,30 @@ interface Course {
   description?: string;
 }
 
-
 // hardcode a student for now
 const STUDENT_ID = 1;
+
+// helper to narrow unknown error to a readable message
+function getErrorMessage(err: unknown): string {
+  if (err instanceof Error) return err.message;
+  if (typeof err === "string") return err;
+  try {
+    return JSON.stringify(err);
+  } catch {
+    return "Unknown error";
+  }
+}
+
+function hasMessage(obj: unknown): obj is { message: string } {
+  if (typeof obj !== "object" || obj === null) return false;
+  const rec = obj as Record<string, unknown>;
+  return typeof rec.message === "string";
+}
+
+// helper to read a `message` from unknown JSON bodies without using `any`
+function readErrorFromResponseBody(v: unknown): string | undefined {
+  return hasMessage(v) ? v.message : undefined;
+}
 
 export default function CourseEnrollmentPage() {
   const [enrollmentCode, setEnrollmentCode] = useState("");
@@ -40,14 +61,13 @@ export default function CourseEnrollmentPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ studentId: STUDENT_ID, enrollmentCode: code }),
     });
-    // Your controller returns 204 No Content on success
     if (res.status !== 204) {
       let msg = `Enrollment failed (${res.status})`;
       try {
-        const data = await res.json();
-        if (data?.message) msg = data.message;
+        const data = (await res.json()) as unknown;
+        msg = readErrorFromResponseBody(data) ?? msg;
       } catch {
-        const txt = await res.text();
+        const txt = await res.text().catch(() => "");
         if (txt) msg = txt;
       }
       throw new Error(msg);
@@ -62,10 +82,10 @@ export default function CourseEnrollmentPage() {
     if (!res.ok) {
       let msg = `Fetching courses failed (${res.status})`;
       try {
-        const data = await res.json();
-        if (data?.message) msg = data.message;
+        const data = (await res.json()) as unknown;
+        msg = readErrorFromResponseBody(data) ?? msg;
       } catch {
-        const txt = await res.text();
+        const txt = await res.text().catch(() => "");
         if (txt) msg = txt;
       }
       throw new Error(msg);
@@ -99,33 +119,29 @@ export default function CourseEnrollmentPage() {
       );
 
       if (!enrolled) {
-        // Enrollment succeeded but we couldn’t match a course by code (fallback UX)
         setMessage("Enrolled! Refresh your courses to see the new class.");
         setMessageType("success");
         setIsLoading(false);
         return;
       }
 
-      // map backend fields to your UI fields for the confirmation card
       const uiCourse: Course = {
         ...enrolled,
-        id: enrolled.classId,
-        subject: "Course", // you can adjust/derive if you later add subject
+        subject: "Course",
         section: `Class #${enrolled.classId}`,
-        instructor:
-            enrolled.teacherId != null ? `Teacher #${enrolled.teacherId}` : "TBA",
-        credits: 3, // placeholder since backend doesn't send this
+        instructor: enrolled.teacherId != null ? `Teacher #${enrolled.teacherId}` : "TBA",
+        credits: 3,
         meetingTime: enrolled.semester || "TBA",
-        description: enrolled.courseDescription,
-      } as any;
+        description: enrolled.courseDescription ?? undefined,
+      };
 
       setFoundCourse(uiCourse);
       setShowConfirmation(true);
       setMessage("");
       setMessageType("");
       setEnrollmentCode("");
-    } catch (err: any) {
-      setMessage(err?.message || "Something went wrong. Please try again.");
+    } catch (err: unknown) {
+      setMessage(getErrorMessage(err) || "Something went wrong. Please try again.");
       setMessageType("error");
     } finally {
       setIsLoading(false);
@@ -133,10 +149,7 @@ export default function CourseEnrollmentPage() {
   };
 
   const handleEnrollConfirm = () => {
-    // Already enrolled on the backend; this just closes the card
-    setMessage(
-        `Successfully enrolled in ${foundCourse?.courseName || "the course"}!`
-    );
+    setMessage(`Successfully enrolled in ${foundCourse?.courseName || "the course"}!`);
     setMessageType("success");
     setShowConfirmation(false);
     setFoundCourse(null);
@@ -206,9 +219,7 @@ export default function CourseEnrollmentPage() {
                       </ol>
 
                       <div className={styles.sampleCodes}>
-                        <p className={styles.sampleTitle}>
-                          Sample codes for testing:
-                        </p>
+                        <p className={styles.sampleTitle}>Sample codes for testing:</p>
                         <div className={styles.codeList}>
                           <span className={styles.sampleCode}>ENR-3042</span>
                           <span className={styles.sampleCode}>ENR-7257</span>
@@ -222,44 +233,30 @@ export default function CourseEnrollmentPage() {
                     <h2 className={styles.confirmationTitle}>Course Found!</h2>
                     <div className={styles.courseDetails}>
                       <div className={styles.courseHeader}>
-                        <h3 className={styles.courseName}>
-                          {foundCourse?.courseName}
-                        </h3>
-                        <span className={styles.courseSection}>
-                      {foundCourse?.section}
-                    </span>
+                        <h3 className={styles.courseName}>{foundCourse?.courseName}</h3>
+                        <span className={styles.courseSection}>{foundCourse?.section}</span>
                       </div>
 
                       <div className={styles.courseInfo}>
                         <div className={styles.infoItem}>
                           <span className={styles.infoLabel}>Subject:</span>
-                          <span className={styles.infoValue}>
-                        {foundCourse?.subject}
-                      </span>
+                          <span className={styles.infoValue}>{foundCourse?.subject}</span>
                         </div>
                         <div className={styles.infoItem}>
                           <span className={styles.infoLabel}>Instructor:</span>
-                          <span className={styles.infoValue}>
-                        {foundCourse?.instructor}
-                      </span>
+                          <span className={styles.infoValue}>{foundCourse?.instructor}</span>
                         </div>
                         <div className={styles.infoItem}>
                           <span className={styles.infoLabel}>Credits:</span>
-                          <span className={styles.infoValue}>
-                        {foundCourse?.credits}
-                      </span>
+                          <span className={styles.infoValue}>{foundCourse?.credits}</span>
                         </div>
                         <div className={styles.infoItem}>
                           <span className={styles.infoLabel}>Meeting Time:</span>
-                          <span className={styles.infoValue}>
-                        {foundCourse?.meetingTime}
-                      </span>
+                          <span className={styles.infoValue}>{foundCourse?.meetingTime}</span>
                         </div>
                         <div className={styles.infoItem}>
                           <span className={styles.infoLabel}>Description:</span>
-                          <span className={styles.infoValue}>
-                        {foundCourse?.description}
-                      </span>
+                          <span className={styles.infoValue}>{foundCourse?.description}</span>
                         </div>
                       </div>
                     </div>
