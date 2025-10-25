@@ -31,10 +31,10 @@ public class CourseManagementService
     // Service method for adding a course
     @Transactional
     public CourseDto createCourse(CourseDto courseDto) {
+
         // Build entity from DTO (Teacher is a relation; set by reference)
         Course entity = new Course();
-        // If your class_id is IDENTITY in DB, you can leave entity.setClassId(null)
-        entity.setClassId(courseDto.getClassId());
+
         entity.setCourseName(courseDto.getCourseName());
         entity.setSemester(courseDto.getSemester());
         entity.setCourseDescription(courseDto.getCourseDescription());
@@ -101,20 +101,6 @@ public class CourseManagementService
 
 
     // Service method for deleting a course
-    public void deleteCourse(int course_id)
-    {
-
-        // Check to see if the course exists with the given course_id
-
-        // If it does, begin deletion process
-
-        // Deletion involves deleting from Postgres (Every Course Material object that has a class id of the course we are deleting must get deleted)
-
-        // Deletion involves deleting from Milvus (Every vector embedding that has an associated vector_id to whatever Course Material we are deleting gets deleted as well)
-
-        //
-
-    }
 
     // Helper methods
 
