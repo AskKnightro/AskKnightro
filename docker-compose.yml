@@ -19,8 +19,6 @@ services:
   backend:
     build:
       context: ./backend
-    # env_file:
-    #   - .env
     environment:
       # Postgres: inside Docker, use service DNS + container port
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-askknightro}
