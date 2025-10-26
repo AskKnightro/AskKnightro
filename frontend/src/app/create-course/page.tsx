@@ -14,7 +14,7 @@ interface UploadedFile {
 
 const CreateCoursePage: React.FC = () => {
   const [courseName, setCourseName] = useState("");
-  const [classCode, setClassCode] = useState("");
+  // const [classCode, setClassCode] = useState("");
   const [classDescription, setClassDescription] = useState("");
   const [termSemester, setTermSemester] = useState("");
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([
@@ -46,9 +46,29 @@ const CreateCoursePage: React.FC = () => {
     setUploadedFiles((prev) => prev.filter((file) => file.id !== fileId));
   };
 
-  const handleSubmitDocument = () => {
+  const handleSubmitDocument = async () => {
     console.log("Submit document clicked");
-    // Handle document submission logic here
+    const courseData = {
+      courseName,
+      classDescription,
+      termSemester,
+      // uploadedFiles,
+    };
+    console.log(courseData);
+
+    const req = await fetch("http://localhost:8080/api/users/courses", {
+      method: "POST",
+      body: JSON.stringify(courseData),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!req.ok) {
+      throw new Error("Failed to create course");
+    }
+    const data = await req.json();
+    console.log(data);
   };
 
   const handleUploadClick = () => {
@@ -82,20 +102,6 @@ const CreateCoursePage: React.FC = () => {
                     value={courseName}
                     onChange={(e) => setCourseName(e.target.value)}
                     placeholder="Enter course name"
-                  />
-                </div>
-
-                <div className={styles.inputGroup}>
-                  <label htmlFor="classCode" className={styles.label}>
-                    Class Code
-                  </label>
-                  <input
-                    type="text"
-                    id="classCode"
-                    className={styles.input}
-                    value={classCode}
-                    onChange={(e) => setClassCode(e.target.value)}
-                    placeholder="Enter class code"
                   />
                 </div>
 
