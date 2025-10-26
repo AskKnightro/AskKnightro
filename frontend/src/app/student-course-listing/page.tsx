@@ -1,7 +1,7 @@
 "use client";
 
-import React from "react";
-import { useRouter } from "next/navigation";
+import React, { Suspense, useEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import CourseCard from "../components/CourseCard";
@@ -10,86 +10,124 @@ import styles from "./student-course-listing.module.css";
 
 interface Course {
   id: string;
-  courseTitle: string;
-  nextExam: string;
-  reviewTopic: string;
+  courseName: string;
+  subject: string;
+  section: string;
+  instructor: string;
+  credits: number;
+  meetingTime: string;
+  description: string;
 }
 
+interface CourseDto {
+  classId: number;
+  enrollmentCode: string;
+  courseName: string;
+  semester: string;
+  teacherId: number | null;
+  courseDescription: string | null;
+  shardId: string | null;
+}
+
+function mapDtoToCourse(dto: CourseDto): Course {
+  return {
+    id: String(dto.classId),
+    courseName: dto.courseName,
+    subject: "—",
+    section: dto.semester ?? "—",
+    instructor: dto.teacherId != null ? `Teacher #${dto.teacherId}` : "TBA",
+    credits: 3,
+    meetingTime: "See syllabus",
+    description: dto.courseDescription ?? "No description provided.",
+  };
+}
+
+/** Top-level page just provides Suspense */
 export default function StudentCourseListingPage() {
+  return (
+      <>
+        <Navbar />
+        <Suspense fallback={<main className={styles.mainContent}><p>Loading…</p></main>}>
+          <StudentCourseListingContent />
+        </Suspense>
+        <Footer />
+      </>
+  );
+}
+
+/** Inner component is where we call useSearchParams */
+function StudentCourseListingContent() {
   const router = useRouter();
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [errorMsg, setErrorMsg] = useState<string>("");
 
-  // Mock course data as specified
-  const courses: Course[] = [
-    {
-      id: "cs101",
-      courseTitle: "CS101: Intro to Computer Science",
-      nextExam: "Next exam: Tomorrow at 12:30PM",
-      reviewTopic: "Review: Linked Lists",
-    },
-    {
-      id: "db101",
-      courseTitle: "DB101: Database Systems",
-      nextExam: "Next exam: Thursday at 9:00AM",
-      reviewTopic: "Review: SQL Statements",
-    },
-    {
-      id: "cs102",
-      courseTitle: "CS102: Deeper into Computer Science",
-      nextExam: "Next exam: 4/19 at 6:30PM",
-      reviewTopic: "Review: Graphs",
-    },
-  ];
+  const params = useSearchParams();
+  const studentId = useMemo(() => {
+    const fromQuery = params?.get("studentId");
+    return fromQuery ? parseInt(fromQuery, 10) : 1;
+  }, [params]);
 
-  const handleCourseClick = (courseId: string) => {
-    // Navigate to course chat with the selected course
-    router.push(`/course-chat?course=${courseId}`);
-  };
+  useEffect(() => {
+    async function fetchCourses() {
+      try {
+        setLoading(true);
+        setErrorMsg("");
+        const url = `http://localhost:8080/api/users/courses/user/${studentId}?role=STUDENT`;
+        const res = await fetch(url, { method: "GET", headers: { "Content-Type": "application/json" } });
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(`Failed to fetch courses (${res.status}): ${text || res.statusText}`);
+        }
+        const data: CourseDto[] = await res.json();
+        setCourses(data.map(mapDtoToCourse));
+      } catch (err: unknown) {
+        setErrorMsg(err instanceof Error ? err.message : "Unable to load courses.");
+        setCourses([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchCourses();
+  }, [studentId]);
 
-  const handleJoinCourse = () => {
-    // Navigate to course enrollment page
-    router.push("/course-enrollment");
-  };
+  const handleCourseClick = (courseId: string) => router.push(`/course-chat?course=${courseId}`);
+  const handleJoinCourse = () => router.push("/course-enrollment");
 
   return (
-    <>
-      <Navbar />
       <div className={styles.pageContainer}>
         <main className={styles.mainContent}>
-          {/* Welcome Section */}
           <div className={styles.welcomeSection}>
             <h1 className={styles.welcomeMessage}>Hello, John</h1>
             <p className={styles.subtitle}>
-              Choose a class below to get personalized help from your AI
-              Teaching Assistant. Each assistant is trained on materials
-              specific to that class, so you&apos;ll get accurate and targeted
-              support.
+              Choose a class below to get personalized help from your AI Teaching Assistant.
             </p>
           </div>
 
-          {/* Courses Section */}
           <div className={styles.coursesSection}>
-            <h2 className={styles.sectionTitle}>View Courses</h2>
+            <h2 className={styles.sectionTitle}>Your Courses</h2>
+
+            {loading && <p>Loading courses…</p>}
+            {!loading && errorMsg && <p style={{ color: "crimson", fontWeight: 600 }}>{errorMsg}</p>}
+            {!loading && !errorMsg && courses.length === 0 && <p>No courses yet. Try joining one!</p>}
 
             <div className={styles.courseGrid}>
               {courses.map((course) => (
-                <CourseCard
-                  key={course.id}
-                  courseTitle={course.courseTitle}
-                  nextExam={course.nextExam}
-                  reviewTopic={course.reviewTopic}
-                  onClick={() => handleCourseClick(course.id)}
-                />
+                  <CourseCard
+                      key={course.id}
+                      courseTitle={course.courseName}
+                      nextExam={"—"}
+                      reviewTopic={course.section}
+                      onClick={() => handleCourseClick(course.id)}
+                  />
               ))}
             </div>
           </div>
 
-          {/* Join Course Button */}
           <div className={styles.joinSection}>
             <Button label="Join a Course" onClick={handleJoinCourse} />
           </div>
         </main>
       </div>
-      <Footer />
-    </>
   );
 }

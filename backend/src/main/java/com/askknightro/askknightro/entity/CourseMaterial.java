@@ -19,7 +19,7 @@ public class CourseMaterial {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "class_id", nullable = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
-    private CourseClass courseClass;
+    private Course courseClass;
 
     private String name;
 

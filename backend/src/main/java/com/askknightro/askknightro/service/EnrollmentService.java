@@ -1,22 +1,33 @@
 package com.askknightro.askknightro.service;
 
+import com.askknightro.askknightro.dto.EnrollmentDto;
+import com.askknightro.askknightro.dto.EnrollmentReqDto;
 import com.askknightro.askknightro.dto.StudentDto;
+import com.askknightro.askknightro.entity.Course;
 import com.askknightro.askknightro.entity.Enrollment;
+import com.askknightro.askknightro.entity.Student;
+import com.askknightro.askknightro.repository.CourseManagementRepository;
 import com.askknightro.askknightro.repository.EnrollmentRepository;
+import com.askknightro.askknightro.repository.StudentRepository;
+import jakarta.persistence.EntityExistsException;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-// Service method for Student Management/Enrollments
+ // Service method for Student Management/Enrollments
 @Service
 @RequiredArgsConstructor
 public class EnrollmentService
 {
 
     private final EnrollmentRepository enrollmentRepository;
+    private final CourseManagementRepository courseManagementRepository;
     private final StudentService studentService;
+    private final StudentRepository studentRepository;
 
     // Service method for retrieving a list of Students of a given Course
     public List<StudentDto> readStudentList(int course_id)
@@ -58,5 +69,35 @@ public class EnrollmentService
 
         // Delete that enrollment row
         enrollmentRepository.delete(enrollment);
+    }
+
+    @Transactional
+    public void addEnrollment(EnrollmentReqDto enrollmentDto) {
+        // 1) Course by code (404 if not found)
+        Course courseToEnroll = courseManagementRepository
+                .findOptionalByEnrollmentCode(enrollmentDto.getEnrollmentCode())
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "No course found for enrollment code '" + enrollmentDto.getEnrollmentCode() + "'."));
+
+        // 2) Student exists (404 if not found)
+        Student student = studentRepository.findById(enrollmentDto.getStudentId())
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Student with id " + enrollmentDto.getStudentId() + " not found."));
+
+        // 3) Already enrolled? (409)
+        boolean already = enrollmentRepository.existsByClassIdAndStudentIdNative(
+                courseToEnroll.getClassId(), student.getStudentId());
+
+        if (already) {
+            throw new EntityExistsException("You are already enrolled in this course.");
+        }
+
+        // 4) Save
+        Enrollment enrollment = Enrollment.builder()
+                .student(student)
+                .courseClass(courseToEnroll)
+                .build();
+
+        enrollmentRepository.save(enrollment);
     }
 }
