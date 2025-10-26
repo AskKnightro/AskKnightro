@@ -23,9 +23,7 @@ public class CognitoAdminService {
             @Value("${aws.region}") String awsRegion,
             @Value("${cognito.userPoolId}") String userPoolId
     ) {
-        if (awsRegion == null && awsRegion.isBlank()) {
-            throw new IllegalStateException("Missing required property 'aws.region' and 'cognito.userPoolId'");
-        }
+        
         if (awsRegion == null || awsRegion.isBlank()) {
             throw new IllegalStateException("Missing required property 'aws.region'");
         }
@@ -111,7 +109,6 @@ public class CognitoAdminService {
                 .build());
         }
     }
-
 
     public void adminDisableUser(String username) {
         client.adminDisableUser(AdminDisableUserRequest.builder()

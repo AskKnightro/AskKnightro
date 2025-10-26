@@ -1,6 +1,7 @@
 package com.askknightro.askknightro.service;
 
 import java.util.Base64;
+import java.util.HashMap;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -8,12 +9,17 @@ import javax.crypto.spec.SecretKeySpec;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import com.askknightro.askknightro.dto.LoginResponseDto;
+
 import lombok.RequiredArgsConstructor;
 import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminGetUserRequest;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminGetUserResponse;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AttributeType;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.AuthFlowType;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.ConfirmSignUpRequest;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.InitiateAuthRequest;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.InitiateAuthResponse;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.SignUpRequest;
 
 @Service
@@ -22,7 +28,7 @@ public class CognitoAuthService {
     // Injected from @Bean below or constructor
   private final CognitoIdentityProviderClient idp;
 
-  @Value("${cognito.region}")         private String region;
+  @Value("${aws.region}")         private String region;
   @Value("${cognito.userPoolId}")     private String userPoolId;
   @Value("${cognito.appClientId}")    private String clientId;
   @Value("${cognito.appClientSecret:}") private String clientSecret; // optional
@@ -81,6 +87,28 @@ public class CognitoAuthService {
 
     return new Identity(sub, user.username());
   }
+
+    public LoginResponseDto login(String username, String password) {
+      var params = new HashMap<String, String>();
+      params.put("USERNAME", username);
+      params.put("PASSWORD", password);
+      String sh = secretHash(username);
+      if (sh != null) params.put("SECRET_HASH", sh);
+
+      InitiateAuthResponse init = idp.initiateAuth(InitiateAuthRequest.builder()
+          .clientId(clientId)
+          .authFlow(AuthFlowType.USER_PASSWORD_AUTH)
+          .authParameters(params)
+          .build());
+
+      if (init.challengeName() != null) {
+        // Uncommon for self-sign-up, but surface it just in case
+        return new LoginResponseDto(null, null, null, init.challengeNameAsString(), init.session());
+      }
+
+      var r = init.authenticationResult();
+      return new LoginResponseDto(r.idToken(), r.accessToken(), r.refreshToken(), null, null);
+    }
 
   private String secretHash(String username) {
     if (clientSecret == null || clientSecret.isBlank()) return null;

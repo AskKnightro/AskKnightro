@@ -1,25 +1,36 @@
 package com.askknightro.askknightro.controller;
 
 import java.net.URI;
+import java.util.List;
+import java.util.Locale;
+import java.util.Optional;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.askknightro.askknightro.dto.ConfirmSignupRequest;
+import com.askknightro.askknightro.dto.LoginRequestDto;
+import com.askknightro.askknightro.dto.LoginResponseDto;
 import com.askknightro.askknightro.dto.StudentDto;
 import com.askknightro.askknightro.dto.TeacherDto;
 import com.askknightro.askknightro.dto.UnifiedSignupRequestDto;
+import com.askknightro.askknightro.dto.UnifiedSignupRequestDto.Role;
+import com.askknightro.askknightro.service.CognitoAdminService;
 import com.askknightro.askknightro.service.CognitoAuthService;
-import com.askknightro.askknightro.service.IdentityProvisioningService;
 import com.askknightro.askknightro.service.StudentService;
 import com.askknightro.askknightro.service.TeacherService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.InvalidParameterException;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.NotAuthorizedException;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.UserNotConfirmedException;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -28,48 +39,44 @@ public class AuthController {
     private final StudentService studentService;
     private final TeacherService teacherService;
     private final CognitoAuthService cognito;         // wraps SignUp/ConfirmSignUp
-    private final IdentityProvisioningService idp;    // optional; for admin ops later
+    private final CognitoAdminService admin;           // for admin operations like adding to groups
+    private final JwtDecoder jwtDecoder;        // your ACCESS token decoder (already used by resource server)
+    private final JwtDecoder cognitoIdTokenDecoder; // the ID token decoder bean above
 
-    // @PostMapping("/signup/student")
-    // @PreAuthorize("permitAll()") // keep StudentController locked; this one stays public
-    // public ResponseEntity<StudentDto> signupStudent(@Valid @RequestBody StudentDto dto) {
-    //     // Ensure we don't accidentally overwrite an existing record
-    //     dto.setStudentId(null);
-
-    //     StudentDto created = studentService.createStudent(dto);
-
-    //     // Location: /api/users/students/{id}
-    //     URI location = URI.create("/api/users/students/" + created.getStudentId());
-    //     return ResponseEntity.created(location).body(created);
-    // }
-
-    // @PostMapping("/signup/teacher")
-    // @PreAuthorize("permitAll()") // keep StudentController locked; this one stays public
-    // public ResponseEntity<TeacherDto> signupTeacher(@Valid @RequestBody TeacherDto dto) {
-    //     // Ensure we don't accidentally overwrite an existing record
-    //     dto.setTeacherId(null);
-
-    //     TeacherDto created = teacherService.createTeacher(dto);
-
-    //     // Location: /api/users/students/{id}
-    //     URI location = URI.create("/api/users/teacher/" + created.getTeacherId());
-    //     return ResponseEntity.created(location).body(created);
-    // }
-
-    // @PostMapping("/login")
-    // public ResponseEntity<LoginResponseDto> login(@RequestBody LoginRequestDto req) {
-    //     var out = cognito.login(req);
-    //     // If challenge, return 409 so frontend can show "set new password" screen.
-    //     return out.challengeName() != null
-    //         ? ResponseEntity.status(409).body(out)
-    //         : ResponseEntity.ok(out);
-    // }
     @PostMapping("/signup")
     @PreAuthorize("permitAll()")
     public ResponseEntity<Void> signup(@Valid @RequestBody UnifiedSignupRequestDto req) {
         // Self sign-up in Cognito
         cognito.signUp(req.email(), req.password(), req.name());
-        // Store a minimal pending record in your own store if you like (optional)
+
+        if (req.role() == Role.STUDENT) {
+            studentService.createDraftFromSignup(
+            StudentDto.builder()
+                .name(req.name())
+                .email(req.email())
+                .password(req.password())            // will be hashed in service
+                .profilePicture(req.profilePicture())
+                .yearStanding(req.yearStanding())
+                .major(req.major())
+                .gradDate(req.gradDate())
+                .schoolId(req.schoolId())
+                .universityCollege(req.universityCollege())
+                .build()
+            );
+        } 
+        // else if (req.role() == Role.TEACHER) {
+        //     teacherService.createDraftFromSignup(
+        //     TeacherDto.builder()
+        //         .name(req.name())
+        //         .email(req.email())
+        //         .password(req.password())            // will be hashed in service
+        //         .department(req.department())
+        //         .profilePicture(req.profilePicture())
+        //         .bio(req.bio())
+        //         .build()
+        //     );
+        // }
+        
         return ResponseEntity.accepted().build(); // user must confirm with code
     }
 
@@ -78,42 +85,49 @@ public class AuthController {
     public ResponseEntity<?> confirm(@Valid @RequestBody ConfirmSignupRequest req) {
         var identity = cognito.confirmSignUp(req.username(), req.code()); // returns sub + username
 
-    // You need the role that user chose at /signup.
-    // Options:
-    // 1) Pass role again here from the client (simplest), OR
-    // 2) Persist pending signups keyed by email, including role, then read it here.
+        // Map your enum to group name
+        String group = switch (req.role()) { // req.role() add Role to ConfirmSignupRequest
+            case STUDENT -> "student";
+            case TEACHER -> "teacher";
+        };
 
-    // Assuming client passes it again (simple):
-    var role = req.role(); // add Role to ConfirmSignupRequest
-
-    switch (role) {
-      case STUDENT -> {
-        var created = studentService.createStudent(
-            StudentDto.builder()
-              .name(req.name())               // include name again OR fetch via AdminGetUser
-              .email(req.username())
-              .password(null)
-              .cognitoSub(identity.sub())
-              .cognitoUsername(identity.username())
-              .build()
-        );
-        var loc = URI.create("/api/users/students/" + created.getStudentId());
-        return ResponseEntity.created(loc).body(created);
-      }
-      case TEACHER -> {
-        var created = teacherService.createTeacher(
-            TeacherDto.builder()
-              .name(req.name())
-              .email(req.username())
-              .password(null)
-              .cognitoSub(identity.sub())
-              .cognitoUsername(identity.username())
-              .build()
-        );
-        var loc = URI.create("/api/users/teacher/" + created.getTeacherId());
-        return ResponseEntity.created(loc).body(created);
-      }
+        admin.adminAddUserToGroup(identity.username(), group);   // <-- assign role in Cognito
+        
+        if (req.role() == Role.STUDENT) {
+            studentService.attachCognitoIdentityOnConfirm(req.username(), identity.sub(), identity.username());
+        }
+        
+        return ResponseEntity.noContent().build();
     }
-    // unreachable
-    return ResponseEntity.badRequest().build();}
+
+    @PostMapping("/login")
+    @PreAuthorize("permitAll()")
+        public ResponseEntity<?> login(@Valid @RequestBody LoginRequestDto req) {
+        String email = req.username().toLowerCase(Locale.ROOT);
+
+        var out = cognito.login(email, req.password());
+        if (out.challengeName() != null) return ResponseEntity.status(409).body(out);
+
+        try {
+            Jwt at = jwtDecoder.decode(out.accessToken());        // validate + read groups
+            Jwt id = cognitoIdTokenDecoder.decode(out.idToken()); // validate + read name/email
+
+            String sub = at.getClaimAsString("sub");
+            String username = Optional.ofNullable(at.getClaimAsString("username"))
+                .orElseGet(() -> Optional.ofNullable(at.getClaimAsString("cognito:username")).orElse(sub));
+
+            @SuppressWarnings("unchecked")
+            var groups = (List<String>) at.getClaims().getOrDefault("cognito:groups", List.of());
+
+            String name = Optional.ofNullable(id.getClaimAsString("name")).orElse("");
+
+            if (groups.contains("student"))  studentService.ensureStudentFromLogin(sub, username, email, name);
+            if (groups.contains("teacher"))  teacherService.ensureTeacherFromLogin(sub, username, email, name);
+        } catch (Exception e) {
+            // If decode fails, just skip auto-provision. Client still gets tokens.
+        }
+
+        return ResponseEntity.ok(out);
+    }
+
 }

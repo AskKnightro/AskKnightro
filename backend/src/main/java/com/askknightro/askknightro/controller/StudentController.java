@@ -61,7 +61,7 @@ public class StudentController
     //     return ResponseEntity.noContent().build();
     // }
 
-    @PostMapping
+    //@PostMapping
     public ResponseEntity<StudentDto> createStudent(@Valid @RequestBody StudentDto studentDto, Authentication auth) {
         studentDto.setStudentId(null); // Ensure ID is null for creation
 

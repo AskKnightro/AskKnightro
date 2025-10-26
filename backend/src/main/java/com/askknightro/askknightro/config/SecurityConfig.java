@@ -57,10 +57,11 @@ public class SecurityConfig {
         .authorizeHttpRequests(auth -> auth
             .requestMatchers(HttpMethod.GET, "/health").permitAll()
             .requestMatchers("/api/actuator/health", "actuator/health").permitAll()
-            .requestMatchers(HttpMethod.POST, "/api/auth/signup/student").permitAll()
-            .requestMatchers(HttpMethod.POST, "/api/auth/signup/teacher").permitAll()
-            .requestMatchers(HttpMethod.POST,"/api/teacher/**").hasRole("TEACHER")
-            .requestMatchers("/api/users/students/**").hasAnyRole("STUDENT")
+            .requestMatchers("/api/auth/signup").permitAll()
+            .requestMatchers("/api/auth/confirm-signup").permitAll()
+            .requestMatchers("/api/auth/login").permitAll()
+            //.requestMatchers(HttpMethod.POST,"/api/teacher/**").hasRole("TEACHER")
+            //.requestMatchers("/api/users/students/**").hasAnyRole("STUDENT")
             .anyRequest().authenticated()
         )
         // Turns the app into an OAuth2 Resource Server
@@ -69,11 +70,6 @@ public class SecurityConfig {
         );
         return http.build();
     }
-
-    /*@Bean
-    JwtDecoder jwtDecoder(@Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri}") String issuer, @Value("${cognito.appClientId}") String audience) {
-        return JwtDecoders.fromIssuerLocation(issuer);
-    }*/
 
     @Bean
     JwtDecoder jwtDecoder(@Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri}") String issuer, 
@@ -99,13 +95,39 @@ public class SecurityConfig {
             }
 
             // 3) (Optional) Require certain scopes
-            String scope = jwt.getClaimAsString("scope"); // e.g. "openid email phone"
+            // String scope = jwt.getClaimAsString("scope"); // e.g. "openid email phone"
             // if you need a specific scope: require scope != null && scope.contains("your/scope")
 
             return OAuth2TokenValidatorResult.success();
         };
 
         decoder.setJwtValidator(new DelegatingOAuth2TokenValidator<>(defaultWithIssuer, cognitoAccessTokenValidator));
+        return decoder;
+    }
+
+    @Bean
+    JwtDecoder cognitoIdTokenDecoder(
+        @Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri}") String issuer,
+        @Value("${cognito.appClientId}") String appClientId) {
+
+        NimbusJwtDecoder decoder = (NimbusJwtDecoder) JwtDecoders.fromIssuerLocation(issuer);
+        var defaultWithIssuer = JwtValidators.createDefaultWithIssuer(issuer);
+
+        OAuth2TokenValidator<Jwt> idTokenValidator = jwt -> {
+            String use = jwt.getClaimAsString("token_use");
+            if (!"id".equals(use)) {
+            return OAuth2TokenValidatorResult.failure(
+                new OAuth2Error("invalid_token", "token_use must be 'id'", null));
+            }
+            String aud = jwt.getClaimAsString("aud");
+            if (!appClientId.equals(aud)) {
+            return OAuth2TokenValidatorResult.failure(
+                new OAuth2Error("invalid_token", "audience mismatch", null));
+            }
+            return OAuth2TokenValidatorResult.success();
+        };
+
+        decoder.setJwtValidator(new DelegatingOAuth2TokenValidator<>(defaultWithIssuer, idTokenValidator));
         return decoder;
     }
 

@@ -16,14 +16,11 @@ public class TeacherService
 
     private final TeacherRepository teacherRepository;
     private final PasswordEncoder passwordEncoder;
-    private final IdentityProvisioningService idp;
 
     // Method for creating a Teacher Entity
     public TeacherDto createTeacher(TeacherDto teacherDto)
     {
         if (teacherRepository.existsByEmail(teacherDto.getEmail())) throw new RuntimeException("Email taken"); // Checking for duplicate emails
-
-        var id = idp.createTeacherIdentity(teacherDto.getEmail(), teacherDto.getName());
 
         Teacher teacherEntity = Teacher.builder()
                 .name(teacherDto.getName())
@@ -34,18 +31,11 @@ public class TeacherService
                 .password(teacherDto.getPassword() == null || teacherDto.getPassword().isBlank()
                         ? null
                         : passwordEncoder.encode(teacherDto.getPassword()))
-                .cognitoSub(id.sub())
-                .cognitoUsername(id.username())
                 .build();
 
-        // Saving to Postgres DB
-        try {
-                teacherRepository.save(teacherEntity);
-        } catch (Exception ex) {
-                try { idp.disableOrDelete(id.username()); } catch (Exception ignore) {}
-                throw ex;
-        }
-
+        // Saving to Postgres 
+        teacherRepository.save(teacherEntity);
+        
         return TeacherDto.builder()
                 .teacherId(teacherEntity.getTeacherId())
                 .name(teacherEntity.getName())
@@ -109,14 +99,31 @@ public class TeacherService
         Teacher teacher = teacherRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Teacher not found with id: " + id));
 
-        String usernameOrSub = (teacher.getCognitoUsername() != null) ? teacher.getCognitoUsername() : teacher.getCognitoSub();
-        if (usernameOrSub != null) {
-                try { idp.disableOrDelete(usernameOrSub); } catch (Exception e) {
-                // decide: log and continue, or rethrow to block deletion
-                }
-        }
-
         teacherRepository.delete(teacher);
     }
+
+    public TeacherDto ensureTeacherFromLogin(String sub, String username, String email, String name) {
+        if (teacherRepository.existsByCognitoSub(sub)) {
+                return null;
+        }
+
+        Teacher teacher = Teacher.builder()
+                .name(name)
+                .email(email)
+                .password(null)
+                .cognitoSub(sub)
+                .cognitoUsername(username)
+                .build();
+
+        teacherRepository.save(teacher);
+
+        return TeacherDto.builder()
+                .teacherId(teacher.getTeacherId())
+                .name(teacher.getName())
+                .email(teacher.getEmail())
+                .cognitoSub(teacher.getCognitoSub())
+                .cognitoUsername(teacher.getCognitoUsername())
+                .build();
+        }
 
 }

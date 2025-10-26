@@ -31,7 +31,7 @@ public class TeacherController {
     //     return ResponseEntity.ok().body(responseTeacherDto);
     // }
 
-    @PostMapping
+    //@PostMapping
     public ResponseEntity<TeacherDto> createTeacher(@Valid @RequestBody TeacherDto teacherDto, Authentication auth){
         teacherDto.setTeacherId(null);
 

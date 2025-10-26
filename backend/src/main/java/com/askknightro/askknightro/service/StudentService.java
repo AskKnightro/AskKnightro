@@ -5,6 +5,8 @@ import com.askknightro.askknightro.entity.Student;
 import com.askknightro.askknightro.repository.StudentRepository;
 import lombok.RequiredArgsConstructor;
 
+import java.util.Locale;
+
 import org.jline.utils.Log;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -18,14 +20,11 @@ public class StudentService
 
     private final StudentRepository studentRepository;
     private final PasswordEncoder passwordEncoder;
-    private final IdentityProvisioningService idp;
 
     // Method for creating a Student Entity
     public StudentDto createStudent(StudentDto studentDto)
     {
         if (studentRepository.existsByEmail(studentDto.getEmail())) throw new RuntimeException("Email taken"); // Checking for duplicate emails
-
-        var id = idp.createStudentIdentity(studentDto.getEmail(), studentDto.getName());
 
         // Building Student Entity from Dto
         Student studentEntity = Student.builder()
@@ -42,19 +41,12 @@ public class StudentService
                 .gradDate(studentDto.getGradDate())
                 .schoolId(studentDto.getSchoolId())
                 .universityCollege(studentDto.getUniversityCollege())
-                .cognitoSub(id.sub())
-                .cognitoUsername(id.username())
+                .cognitoSub(null)
+                .cognitoUsername(null)
                 .build();
 
-        // studentRepository.save(studentEntity);
-
-        try {
-                studentRepository.save(studentEntity);
-        } catch (Exception ex) {
-                try { idp.disableOrDelete(id.username()); } catch (Exception ignore) {}
-                throw ex;
-        }
-
+        studentRepository.save(studentEntity);
+        
         return StudentDto.builder()
                 .studentId(studentEntity.getStudentId())
                 .name(studentEntity.getName())
@@ -65,9 +57,75 @@ public class StudentService
                 .gradDate(studentEntity.getGradDate())
                 .schoolId(studentEntity.getSchoolId())
                 .universityCollege(studentEntity.getUniversityCollege())
-                .cognitoSub(id.sub())
-                .cognitoUsername(id.username())
+                .cognitoSub(studentEntity.getCognitoSub())
+                .cognitoUsername(studentEntity.getCognitoUsername())
                 .build();
+    }
+
+    public StudentDto createDraftFromSignup(StudentDto studentDto) {
+        String email = studentDto.getEmail().toLowerCase(Locale.ROOT);
+
+        // Idempotent on retries
+        var existing = studentRepository.findByEmail(email);
+        if (existing.isPresent()) {
+            var s = existing.get();
+            return StudentDto.builder()
+                .studentId(s.getStudentId())
+                .name(s.getName())
+                .email(s.getEmail())
+                .profilePicture(s.getProfilePicture())
+                .yearStanding(s.getYearStanding())
+                .major(s.getMajor())
+                .gradDate(s.getGradDate())
+                .schoolId(s.getSchoolId())
+                .universityCollege(s.getUniversityCollege())
+                .cognitoSub(s.getCognitoSub())
+                .cognitoUsername(s.getCognitoUsername())
+                .build();
+        }
+
+        String hashed = (studentDto.getPassword() == null || studentDto.getPassword().isBlank())
+            ? null
+            : passwordEncoder.encode(studentDto.getPassword());
+
+        Student studentEntity = Student.builder()
+            .name(studentDto.getName())
+            .email(email)
+            .password(hashed)                // store HASH only
+            .profilePicture(studentDto.getProfilePicture())
+            .yearStanding(studentDto.getYearStanding())
+            .major(studentDto.getMajor())
+            .gradDate(studentDto.getGradDate())
+            .schoolId(studentDto.getSchoolId())
+            .universityCollege(studentDto.getUniversityCollege())
+            .cognitoSub(null)                // filled at confirm
+            .cognitoUsername(null)           // filled at confirm
+            .build();
+
+        studentRepository.save(studentEntity);
+
+        return StudentDto.builder()
+            .studentId(studentEntity.getStudentId())
+            .name(studentEntity.getName())
+            .email(studentEntity.getEmail())
+            .profilePicture(studentEntity.getProfilePicture())
+            .yearStanding(studentEntity.getYearStanding())
+            .major(studentEntity.getMajor())
+            .gradDate(studentEntity.getGradDate())
+            .schoolId(studentEntity.getSchoolId())
+            .universityCollege(studentEntity.getUniversityCollege())
+            .cognitoSub(studentEntity.getCognitoSub())
+            .cognitoUsername(studentEntity.getCognitoUsername())
+            .build();
+    }
+
+    /** Called at /confirm-signup to link the existing draft to Cognito IDs. */
+    public void attachCognitoIdentityOnConfirm(String email, String sub, String username) {
+        var s = studentRepository.findByEmail(email.toLowerCase(Locale.ROOT))
+            .orElseThrow(() -> new IllegalStateException("No student draft for " + email));
+        s.setCognitoSub(sub);
+        s.setCognitoUsername(username);
+        studentRepository.save(s);
     }
 
     // Method for retrieving a Student Entity
@@ -102,11 +160,7 @@ public class StudentService
                 if (studentRepository.existsByEmail(requestStudentDto.getEmail())) {
                         throw new RuntimeException("Email taken");
                 }
-                // update Cognito first; if it throws, DB won't be changed due to @Transactional
-                String usernameOrSub = (studentEntity.getCognitoUsername() != null) ? studentEntity.getCognitoUsername() : studentEntity.getCognitoSub();
-                if (usernameOrSub != null) {
-                        idp.updateEmail(usernameOrSub, requestStudentDto.getEmail());
-                }
+                
                 studentEntity.setEmail(requestStudentDto.getEmail());
         }
 
@@ -146,16 +200,33 @@ public class StudentService
         Student student = studentRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Student not found with id: " + id));
 
-        String usernameOrSub = (student.getCognitoUsername() != null) ? student.getCognitoUsername() : student.getCognitoSub();
-        if (usernameOrSub != null) {
-                try { idp.disableOrDelete(usernameOrSub); } catch (Exception e) {
-                // decide: log and continue, or rethrow to block deletion
-                }
-        }
-
         studentRepository.delete(student);
     }
 
+    public StudentDto ensureStudentFromLogin(String sub, String username, String email, String name) {
+        if (studentRepository.existsByCognitoSub(sub)) {
+                // already present; optionally return the existing mapped DTO
+                // return mapper(existing);
+                return null; // if you don't need a return value
+        }
 
+        Student student = Student.builder()
+                .name(name)
+                .email(email)
+                .password(null)                // NEVER store Cognito password
+                .cognitoSub(sub)
+                .cognitoUsername(username)
+                .build();
+
+        studentRepository.save(student);
+
+        return StudentDto.builder()
+                .studentId(student.getStudentId())
+                .name(student.getName())
+                .email(student.getEmail())
+                .cognitoSub(student.getCognitoSub())
+                .cognitoUsername(student.getCognitoUsername())
+                .build();
+        }
 
 }
