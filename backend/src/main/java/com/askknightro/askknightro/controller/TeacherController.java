@@ -24,25 +24,11 @@ public class TeacherController {
     private final TeacherRepository teacherRepository;
 
     // Endpoint for Creating a Teacher
-    // @PostMapping()
-    // public ResponseEntity<TeacherDto> createTeacher(@RequestBody TeacherDto teacherDto)
-    // {
-    //     TeacherDto responseTeacherDto = teacherService.createTeacher(teacherDto);
-    //     return ResponseEntity.ok().body(responseTeacherDto);
-    // }
-
-    //@PostMapping
-    public ResponseEntity<TeacherDto> createTeacher(@Valid @RequestBody TeacherDto teacherDto, Authentication auth){
-        teacherDto.setTeacherId(null);
-
-        var jwt = (Jwt) auth.getPrincipal();
-        teacherDto.setCognitoUsername(auth.getName());
-        teacherDto.setCognitoSub(jwt.getClaimAsString("sub"));
-        TeacherDto created = teacherService.createTeacher(teacherDto);
-
-        return ResponseEntity
-                .created(URI.create("/api/users/teacher/" + created.getTeacherId()))
-                .body(created);
+    @PostMapping()
+    public ResponseEntity<TeacherDto> createTeacher(@RequestBody TeacherDto teacherDto)
+    {
+        TeacherDto responseTeacherDto = teacherService.createTeacher(teacherDto);
+        return ResponseEntity.ok().body(responseTeacherDto);
     }
 
     // Endpoint for Retrieving a Teacher
@@ -53,7 +39,6 @@ public class TeacherController {
         return ResponseEntity.ok().body(teacherDto);
     }
 
-
     // Endpoint for Updating a Teacher
     @PutMapping("/{teacher_id}")
     public ResponseEntity<TeacherDto> updateTeacher(@PathVariable Integer teacher_id, @RequestBody TeacherDto teacherDto)
@@ -61,7 +46,6 @@ public class TeacherController {
         TeacherDto responseTeacherDto = teacherService.updateTeacher(teacher_id, teacherDto);
         return ResponseEntity.ok().body(responseTeacherDto);
     }
-
 
     // Endpoint for Deleting a Teacher
     @DeleteMapping("/{teacher_id}")

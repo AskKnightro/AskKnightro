@@ -64,18 +64,18 @@ public class AuthController {
                 .build()
             );
         } 
-        // else if (req.role() == Role.TEACHER) {
-        //     teacherService.createDraftFromSignup(
-        //     TeacherDto.builder()
-        //         .name(req.name())
-        //         .email(req.email())
-        //         .password(req.password())            // will be hashed in service
-        //         .department(req.department())
-        //         .profilePicture(req.profilePicture())
-        //         .bio(req.bio())
-        //         .build()
-        //     );
-        // }
+        else if (req.role() == Role.TEACHER) {
+            teacherService.createDraftFromSignup(
+            TeacherDto.builder()
+                .name(req.name())
+                .email(req.email())
+                .password(req.password())            // will be hashed in service
+                .department(req.department())
+                .profilePicture(req.profilePicture())
+                .bio(req.bio())
+                .build()
+            );
+        }
         
         return ResponseEntity.accepted().build(); // user must confirm with code
     }
@@ -95,6 +95,8 @@ public class AuthController {
         
         if (req.role() == Role.STUDENT) {
             studentService.attachCognitoIdentityOnConfirm(req.username(), identity.sub(), identity.username());
+        } else if (req.role() == Role.TEACHER) {
+            teacherService.attachCognitoIdentityOnConfirm(req.username(), identity.sub(), identity.username());
         }
         
         return ResponseEntity.noContent().build();

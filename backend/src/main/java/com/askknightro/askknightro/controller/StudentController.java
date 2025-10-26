@@ -27,69 +27,34 @@ public class StudentController
     private final StudentService studentService;
 
     // Endpoint for Creating a Student
-    // @PostMapping
-    // public ResponseEntity<StudentDto> createStudent(@RequestBody StudentDto studentDto)
-    // {
-    //     StudentDto responseDto = studentService.createStudent(studentDto);
-    //     return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
-    // }
-
-
-    // // Endpoint for Retrieving a Student
-    // @GetMapping("/{student_id}")
-    // public ResponseEntity<StudentDto> getStudent(@PathVariable Integer student_id)
-    // {
-    //     StudentDto studentDto = studentService.readStudent(student_id);
-    //     return ResponseEntity.ok().body(studentDto);
-    // }
-
-
-    // // Endpoint for Updating a Student
-    // @PutMapping("/{student_id}")
-    // public ResponseEntity<StudentDto> updateStudent(@PathVariable Integer student_id, @RequestBody StudentDto studentDto)
-    // {
-    //     StudentDto updatedStudentDto = studentService.updateStudent(student_id, studentDto);
-    //     return ResponseEntity.ok().body(updatedStudentDto);
-    // }
-
-
-    // // Endpoint for Deleting a Student
-    // @DeleteMapping("/{student_id}")
-    // public ResponseEntity<Void> deleteStudent(@PathVariable Integer student_id)
-    // {
-    //     studentService.deleteStudent(student_id);
-    //     return ResponseEntity.noContent().build();
-    // }
-
-    //@PostMapping
-    public ResponseEntity<StudentDto> createStudent(@Valid @RequestBody StudentDto studentDto, Authentication auth) {
-        studentDto.setStudentId(null); // Ensure ID is null for creation
-
-        var jwt = (Jwt) auth.getPrincipal();
-        studentDto.setCognitoUsername(auth.getName());
-        studentDto.setCognitoSub(jwt.getClaimAsString("sub"));
-        
-        StudentDto created = studentService.createStudent(studentDto);
-        // Location: /api/users/students/{id}
-        return ResponseEntity
-                .created(URI.create("/api/users/students/" + created.getStudentId()))
-                .body(created);
+    @PostMapping
+    public ResponseEntity<StudentDto> createStudent(@RequestBody StudentDto studentDto)
+    {
+        StudentDto responseDto = studentService.createStudent(studentDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
     }
 
+    // Endpoint for Retrieving a Student
     @GetMapping("/{student_id}")
-    public ResponseEntity<StudentDto> getStudent(@PathVariable("student_id") Integer id) {
-        return ResponseEntity.ok(studentService.readStudent(id));
+    public ResponseEntity<StudentDto> getStudent(@PathVariable Integer student_id)
+    {
+        StudentDto studentDto = studentService.readStudent(student_id);
+        return ResponseEntity.ok().body(studentDto);
     }
 
+    // Endpoint for Updating a Student
     @PutMapping("/{student_id}")
-    public ResponseEntity<StudentDto> updateStudent(@PathVariable("student_id") Integer id,
-                                                    @Valid @RequestBody StudentDto studentDto) {
-        return ResponseEntity.ok(studentService.updateStudent(id, studentDto));
+    public ResponseEntity<StudentDto> updateStudent(@PathVariable Integer student_id, @RequestBody StudentDto studentDto)
+    {
+        StudentDto updatedStudentDto = studentService.updateStudent(student_id, studentDto);
+        return ResponseEntity.ok().body(updatedStudentDto);
     }
 
+    // Endpoint for Deleting a Student
     @DeleteMapping("/{student_id}")
-    public ResponseEntity<Void> deleteStudent(@PathVariable("student_id") Integer id) {
-        studentService.deleteStudent(id);
+    public ResponseEntity<Void> deleteStudent(@PathVariable Integer student_id)
+    {
+        studentService.deleteStudent(student_id);
         return ResponseEntity.noContent().build();
     }
 

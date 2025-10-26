@@ -19,8 +19,8 @@ services:
   backend:
     build:
       context: ./backend
-    env_file:
-      - .env
+    # env_file:
+    #   - .env
     environment:
       # Postgres: inside Docker, use service DNS + container port
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-askknightro}
@@ -39,6 +39,14 @@ services:
       SPRING_AI_VECTORSTORE_MILVUS_EMBEDDINGDIMENSION: "1536"
       SPRING_AI_VECTORSTORE_MILVUS_INDEXTYPE: IVF_FLAT
       SPRING_AI_VECTORSTORE_MILVUS_METRICTYPE: COSINE
+
+      AWS_REGION: ${AWS_REGION:-us-east-2}
+      COGNITO_USER_POOL_ID: ${COGNITO_USER_POOL_ID}
+      COGNITO_APP_CLIENT_ID: ${COGNITO_APP_CLIENT_ID}
+      COGNITO_APP_CLIENT_SECRET: ${COGNITO_APP_CLIENT_SECRET}
+      JWT_COGNITO: ${JWT_COGNITO}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
 
     depends_on:
       postgres:
