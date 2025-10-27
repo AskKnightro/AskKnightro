@@ -78,6 +78,9 @@ export default function Page() {
       }
 
       console.log("Signup successful!");
+      localStorage.setItem("tempEmail", email);
+      localStorage.setItem("tempRole", payload.role)
+      window.location.href = `/confirm-signup`;
     } catch (error: unknown) {
       if (error instanceof Error) {
         console.error(error);
