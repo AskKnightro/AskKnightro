@@ -41,11 +41,27 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import org.springframework.security.config.Customizer;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
+
+    @Bean
+    CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowedOrigins(Arrays.asList("http://localhost:3000", "http://localhost:3001")); // your frontend
+        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With"));
+        config.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
+    }
 
     @Bean
     SecurityFilterChain api(HttpSecurity http, JwtDecoder jwtDecoder) throws Exception {
@@ -57,9 +73,9 @@ public class SecurityConfig {
         .authorizeHttpRequests(auth -> auth
             .requestMatchers(HttpMethod.GET, "/health").permitAll()
             .requestMatchers("/api/actuator/health", "actuator/health").permitAll()
-            .requestMatchers("/api/auth/signup").permitAll()
-            .requestMatchers("/api/auth/confirm-signup").permitAll()
-            .requestMatchers("/api/auth/login").permitAll()
+            .requestMatchers(HttpMethod.POST, "/api/auth/signup").permitAll()
+            .requestMatchers(HttpMethod.POST, "/api/auth/confirm-signup").permitAll()
+            // .requestMatchers("/api/auth/**").permitAll()
             //.requestMatchers(HttpMethod.POST,"/api/teacher/**").hasRole("TEACHER")
             //.requestMatchers("/api/users/students/**").hasAnyRole("STUDENT")
             .anyRequest().authenticated()

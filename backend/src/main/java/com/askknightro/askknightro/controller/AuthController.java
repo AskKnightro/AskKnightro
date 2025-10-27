@@ -44,8 +44,8 @@ public class AuthController {
     private final JwtDecoder cognitoIdTokenDecoder; // the ID token decoder bean above
 
     @PostMapping("/signup")
-    @PreAuthorize("permitAll()")
     public ResponseEntity<Void> signup(@Valid @RequestBody UnifiedSignupRequestDto req) {
+        System.out.println("SIGNUP ENDPOINT HIT");
         // Self sign-up in Cognito
         cognito.signUp(req.email(), req.password(), req.name());
 
@@ -81,7 +81,6 @@ public class AuthController {
     }
 
     @PostMapping("/confirm-signup")
-    @PreAuthorize("permitAll()")
     public ResponseEntity<?> confirm(@Valid @RequestBody ConfirmSignupRequest req) {
         var identity = cognito.confirmSignUp(req.username(), req.code()); // returns sub + username
 
@@ -103,7 +102,6 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    @PreAuthorize("permitAll()")
         public ResponseEntity<?> login(@Valid @RequestBody LoginRequestDto req) {
         String email = req.username().toLowerCase(Locale.ROOT);
 
