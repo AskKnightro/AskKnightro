@@ -6,6 +6,7 @@ import Link from "next/link";
 import Button from "../components/Button";
 import Footer from "../components/Footer";
 import styles from "./signup.module.css";
+import Error from "next/error";
 
 export default function Page() {
   const [showPassword, setShowPassword] = useState(false);
@@ -46,48 +47,44 @@ export default function Page() {
     }
   };
 
-  const handleSignup = () => {
-    setFormError(""); // Clear previous errors
-
-    const isEmailValid = validateEmail(email);
-
-    if (!isEmailValid) {
-      return;
-    }
-
-    if (!firstName || !lastName) {
-      setFormError("First name and last name are required");
-      return;
-    }
-
-    if (!userRole) {
-      setFormError("Please select whether you are a student or teacher");
-      return;
-    }
-
-    if (!password) {
-      setFormError("Password is required");
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      setFormError("Passwords do not match");
-      return;
-    }
-
-    if (!agreeToTerms) {
-      setFormError("You must agree to the terms and conditions");
-      return;
-    }
-
-    console.log("Signup clicked", {
-      firstName,
-      lastName,
+  const handleSignup = async () => {
+    setFormError("");
+  
+    if (!validateEmail(email)) return;
+    if (!firstName || !lastName) { setFormError("Name required"); return; }
+    if (!password || password !== confirmPassword) { setFormError("Password mismatch"); return; }
+    if (!userRole) { setFormError("Select role"); return; }
+    if (!agreeToTerms) { setFormError("Agree to terms"); return; }
+  
+    const payload = {
+      name: `${firstName} ${lastName}`,
       email,
       password,
-      userRole,
-      agreeToTerms,
-    });
+      role: userRole.toUpperCase(), 
+    };
+  
+    console.log(payload)
+
+    try {
+      const response = await fetch("http://localhost:8080/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        setFormError("Signup failed");
+        return;
+      }
+
+      console.log("Signup successful!");
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.error(error);
+      } else {
+        console.error('An unknown error occurred:', error);
+      }
+    }
   };
 
   return (
