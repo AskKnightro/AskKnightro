@@ -110,6 +110,8 @@ export default function Page() {
       const groups = Array.isArray(claimsUnknown["cognito:groups"])
         ? claimsUnknown["cognito:groups"]!
         : [];
+
+      localStorage.setItem("groups", groups);
       
       if (groups.includes("student")) {
         router.push("/student-dashboard");
