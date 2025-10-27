@@ -29,7 +29,6 @@ const TeacherNavbar: React.FC = () => {
     { icon: "✓", label: "Dashboard", isActive: true },
     { icon: "↕", label: "Course Logs", isActive: false },
     { icon: "✏", label: "Edit Course", isActive: false },
-    { icon: "🎯", label: "Manage Members", isActive: false },
   ];
 
   return (
