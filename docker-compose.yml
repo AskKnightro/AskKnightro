@@ -28,15 +28,6 @@ services:
       # Spring AI OpenAI (set in your shell or .env, do NOT hardcode)
       SPRING_AI_OPENAI_API_KEY: ${SPRING_AI_OPENAI_API_KEY}
 
-      SPRING_AI_VECTORSTORE_MILVUS_CLIENT_HOST: standalone
-      SPRING_AI_VECTORSTORE_MILVUS_CLIENT_PORT: 19530
-      SPRING_AI_VECTORSTORE_MILVUS_CLIENT_SECURE: "false"
-      SPRING_AI_VECTORSTORE_MILVUS_DATABASENAME: default
-      SPRING_AI_VECTORSTORE_MILVUS_COLLECTION_NAME: vector_store4
-      SPRING_AI_VECTORSTORE_MILVUS_EMBEDDINGDIMENSION: "1536"
-      SPRING_AI_VECTORSTORE_MILVUS_INDEXTYPE: IVF_FLAT
-      SPRING_AI_VECTORSTORE_MILVUS_METRICTYPE: COSINE
-
     depends_on:
       postgres:
         condition: service_healthy
@@ -53,14 +44,14 @@ services:
       - backend
     ports: ["3000:3000"]
 
-  milvus-migrate:
-    build:
-      context: ./backend/src/main/resources/db/milvus_migrations
-      dockerfile: Dockerfile.milvus_migrate
-    depends_on:
-      - standalone
-    entrypoint: ["python", "migrate.py"]
-    restart: "no"
+#  milvus-migrate:
+#    build:
+#      context: ./backend/src/main/resources/db/milvus_migrations
+#      dockerfile: Dockerfile.milvus_migrate
+#    depends_on:
+#      - standalone
+#    entrypoint: ["python", "migrate.py"]
+#    restart: "no"
 
   attu:
     image: zilliz/attu:latest
@@ -72,6 +63,75 @@ services:
     environment:
       - MILVUS_URL=http://standalone:19530
 
+  ollama:
+    image: ollama/ollama:latest
+    restart: unless-stopped
+    environment:
+      - OLLAMA_NUM_THREADS=8        # threads per request
+      - OLLAMA_NUM_PARALLEL=2       # concurrent requests
+      - OLLAMA_KEEP_ALIVE=24h       # keep models “hot”
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama:/root/.ollama
+  etcd:
+    image: quay.io/coreos/etcd:v3.5.18
+    environment:
+      - ETCD_AUTO_COMPACTION_MODE=revision
+      - ETCD_AUTO_COMPACTION_RETENTION=1000
+      - ETCD_QUOTA_BACKEND_BYTES=4294967296
+      - ETCD_SNAPSHOT_COUNT=50000
+    volumes:
+      - etcd-data:/etcd
+    command: etcd -advertise-client-urls=http://etcd:2379 -listen-client-urls http://0.0.0.0:2379 --data-dir /etcd
+    healthcheck:
+      test: [ "CMD", "etcdctl", "endpoint", "health" ]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  minio:
+    image: minio/minio:RELEASE.2024-12-18T13-15-44Z
+    environment:
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+    ports:
+      - "9001:9001"
+      - "9000:9000"
+    volumes:
+      - minio-data:/minio_data
+    command: minio server /minio_data --console-address ":9001"
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  standalone:
+    image: milvusdb/milvus:v2.6.0
+    command: [ "milvus", "run", "standalone" ]
+    security_opt: [ "seccomp:unconfined" ]
+    environment:
+      ETCD_ENDPOINTS: etcd:2379
+      MINIO_ADDRESS: minio:9000
+      MQ_TYPE: woodpecker
+      MINIO_USE_SSL: "false"
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+    volumes:
+      - milvus-data:/var/lib/milvus
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9091/healthz" ]
+      interval: 30s
+      start_period: 90s
+      timeout: 20s
+      retries: 3
+    ports:
+      - "19530:19530"   # remove if you don't need host access
+      - "9091:9091"
+    depends_on:
+      - etcd
+      - minio
 
 
 volumes:
@@ -79,3 +139,4 @@ volumes:
   minio-data:
   milvus-data:
   pgdata:
+  ollama:
