@@ -51,7 +51,7 @@ function mapDtoToCourse(dto: CourseDto): Course {
         instructor: dto.teacherId != null ? `You (Teacher #${dto.teacherId})` : "You",
         credits: 3,
         meetingTime: "See syllabus",
-        description: dto.courseDescription ?? "No description provided.",
+        description: dto.courseDescription || "No description provided.",  // ⬅️ handles "", "   "
     };
 }
 
@@ -170,7 +170,7 @@ function TeacherDashboardContent() {
                         {loadingTeacher ? "Loading…" : `Hello, ${teacherName}`}
                     </h1>
                     <p className={styles.subtitle}>
-                        Select one of your classes to manage materials, students, and course info.
+                        This is your dashboard hub. From here, you can create new courses, manage existing ones, and set up AI Teaching Assistants trained specifically on your course materials.
                     </p>
                 </div>
 
@@ -193,6 +193,7 @@ function TeacherDashboardContent() {
                                 courseTitle={course.courseName}
                                 nextExam={"—"}
                                 reviewTopic={course.section}
+                                description={course.description}
                                 onClick={() => handleCourseClick(course.id)}
                             />
                         ))}

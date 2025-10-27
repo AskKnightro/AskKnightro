@@ -29,25 +29,40 @@ interface CourseDto {
   shardId: string | null;
 }
 
+interface StudentDto {
+  studentId: number;
+  name: string;
+  email: string;
+  major?: string | null;
+  yearStanding?: string | null;
+  profilePicture?: string | null;
+}
+
 function mapDtoToCourse(dto: CourseDto): Course {
   return {
     id: String(dto.classId),
     courseName: dto.courseName,
     subject: "—",
     section: dto.semester ?? "—",
-    instructor: dto.teacherId != null ? `Teacher #${dto.teacherId}` : "TBA",
+    instructor: dto.teacherId != null ? `You (Teacher #${dto.teacherId})` : "You",
     credits: 3,
     meetingTime: "See syllabus",
-    description: dto.courseDescription ?? "No description provided.",
+    description: dto.courseDescription || "No description provided.",  // ⬅️ handles "", "   "
   };
 }
 
-/** Top-level page just provides Suspense */
+/** Top-level wrapper with suspense fallback */
 export default function StudentCourseListingPage() {
   return (
       <>
         <Navbar />
-        <Suspense fallback={<main className={styles.mainContent}><p>Loading…</p></main>}>
+        <Suspense
+            fallback={
+              <main className={styles.mainContent}>
+                <p>Loading…</p>
+              </main>
+            }
+        >
           <StudentCourseListingContent />
         </Suspense>
         <Footer />
@@ -55,26 +70,51 @@ export default function StudentCourseListingPage() {
   );
 }
 
-/** Inner component is where we call useSearchParams */
+/** Inner component */
 function StudentCourseListingContent() {
   const router = useRouter();
-  const [courses, setCourses] = useState<Course[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [errorMsg, setErrorMsg] = useState<string>("");
-
   const params = useSearchParams();
+
   const studentId = useMemo(() => {
     const fromQuery = params?.get("studentId");
-    return fromQuery ? parseInt(fromQuery, 10) : 1;
+    return fromQuery ? parseInt(fromQuery, 10) : 1; // default for dev
   }, [params]);
 
+  const [student, setStudent] = useState<StudentDto | null>(null);
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState("");
+
+  /** Fetch student info */
+  useEffect(() => {
+    async function fetchStudent() {
+      try {
+        const res = await fetch(`http://localhost:8080/api/users/students/${studentId}`, {
+          headers: { "Content-Type": "application/json" },
+          cache: "no-store",
+        });
+        if (!res.ok) throw new Error(`Failed to fetch student (${res.status})`);
+        const data: StudentDto = await res.json();
+        setStudent(data);
+      } catch (err: unknown) {
+        console.error(err);
+        setStudent(null);
+      }
+    }
+    fetchStudent();
+  }, [studentId]);
+
+  /** Fetch courses */
   useEffect(() => {
     async function fetchCourses() {
       try {
         setLoading(true);
         setErrorMsg("");
         const url = `http://localhost:8080/api/users/courses/user/${studentId}?role=STUDENT`;
-        const res = await fetch(url, { method: "GET", headers: { "Content-Type": "application/json" } });
+        const res = await fetch(url, {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+        });
         if (!res.ok) {
           const text = await res.text();
           throw new Error(`Failed to fetch courses (${res.status}): ${text || res.statusText}`);
@@ -91,16 +131,22 @@ function StudentCourseListingContent() {
     fetchCourses();
   }, [studentId]);
 
-  const handleCourseClick = (courseId: string) => router.push(`/course-chat?course=${courseId}`);
-  const handleJoinCourse = () => router.push("/course-enrollment");
+  const handleCourseClick = (courseId: string) =>
+      router.push(`/course-chat?course=${courseId}&studentId=${studentId}`);
+
+  const handleJoinCourse = () => router.push(`/course-enrollment?studentId=${studentId}`);
+
+  const studentName = student?.name ?? "Student";
 
   return (
       <div className={styles.pageContainer}>
         <main className={styles.mainContent}>
           <div className={styles.welcomeSection}>
-            <h1 className={styles.welcomeMessage}>Hello, John</h1>
+            <h1 className={styles.welcomeMessage}>Hello, {studentName}</h1>
             <p className={styles.subtitle}>
               Choose a class below to get personalized help from your AI Teaching Assistant.
+              Each assistant is trained on materials specific to that class, so you’ll get accurate
+              and targeted support.
             </p>
           </div>
 
@@ -108,8 +154,12 @@ function StudentCourseListingContent() {
             <h2 className={styles.sectionTitle}>Your Courses</h2>
 
             {loading && <p>Loading courses…</p>}
-            {!loading && errorMsg && <p style={{ color: "crimson", fontWeight: 600 }}>{errorMsg}</p>}
-            {!loading && !errorMsg && courses.length === 0 && <p>No courses yet. Try joining one!</p>}
+            {!loading && errorMsg && (
+                <p style={{ color: "crimson", fontWeight: 600 }}>{errorMsg}</p>
+            )}
+            {!loading && !errorMsg && courses.length === 0 && (
+                <p>No courses yet. Try joining one!</p>
+            )}
 
             <div className={styles.courseGrid}>
               {courses.map((course) => (
@@ -118,6 +168,7 @@ function StudentCourseListingContent() {
                       courseTitle={course.courseName}
                       nextExam={"—"}
                       reviewTopic={course.section}
+                      description={course.description}
                       onClick={() => handleCourseClick(course.id)}
                   />
               ))}
