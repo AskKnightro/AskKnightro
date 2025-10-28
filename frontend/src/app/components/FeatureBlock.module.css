@@ -30,7 +30,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 24px;
+  margin: 0 auto 24px auto;
   box-shadow: 0 4px 12px rgba(255, 203, 31, 0.3);
 }
 

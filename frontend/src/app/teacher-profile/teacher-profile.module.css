@@ -1,3 +1,4 @@
+/* Page layout */
 .pageContainer {
   min-height: 100vh;
   background-color: #f8f9fa;
@@ -11,7 +12,16 @@
   padding: 0 20px;
 }
 
-/* Section Header */
+/* Section / Card */
+.infoSection {
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  margin-bottom: 24px;
+  padding: 24px;
+}
+
+/* Header */
 .sectionHeader {
   display: flex;
   justify-content: space-between;
@@ -77,24 +87,31 @@
   border-color: #bd2130;
 }
 
-/* Info Sections */
-.infoSection {
-  background-color: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  margin-bottom: 24px;
-  padding: 24px;
+/* Status banners */
+.loading {
+  color: #6c757d;
+  padding: 8px 12px;
 }
 
-.sectionTitle {
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: #333;
-  margin: 0 0 24px 0;
-  padding-bottom: 12px;
-  border-bottom: 2px solid #f0f0f0;
+.errorBox {
+  background: rgba(239, 68, 68, 0.06);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.12);
+  padding: 10px 14px;
+  border-radius: 8px;
+  margin-bottom: 12px;
 }
 
+.successBox {
+  background: rgba(16, 185, 129, 0.06);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.12);
+  padding: 10px 14px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+
+/* Grid of fields */
 .infoGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -124,6 +141,7 @@
   font-size: 1rem;
 }
 
+/* Inputs (match student style) */
 .editInput,
 .editSelect {
   padding: 12px 16px;
@@ -131,40 +149,29 @@
   border-radius: 6px;
   font-size: 1rem;
   color: #333;
-  background-color: white;
+  background-color: #fff;
   transition: border-color 0.3s ease;
   outline: none;
 }
 
+.editTextarea {
+  padding: 12px 16px;
+  border: 2px solid #ffd700;
+  border-radius: 6px;
+  font-size: 1rem;
+  color: #333;
+  background-color: #fff;
+  transition: border-color 0.3s ease;
+  outline: none;
+  resize: vertical;
+  min-height: 140px;
+}
+
 .editInput:focus,
-.editSelect:focus {
+.editSelect:focus,
+.editTextarea:focus {
   border-color: #ffed4e;
   box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.1);
-}
-
-/* Courses list */
-.coursesList {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.courseItem {
-  padding: 12px 16px;
-  background-color: #f8f9fa;
-  border: 1px solid #e9ecef;
-  border-radius: 6px;
-  color: #333;
-  font-size: 0.9rem;
-}
-
-.courseCode {
-  font-weight: 600;
-  color: #ffd700;
-  background-color: #333;
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 0.8rem;
 }
 
 /* Preview avatar */
@@ -183,34 +190,11 @@
   background: #fff;
 }
 
-/* Status banners */
-.errorBox {
-  background: rgba(239, 68, 68, 0.06);
-  color: #ef4444;
-  border: 1px solid rgba(239, 68, 68, 0.12);
-  padding: 10px 14px;
-  border-radius: 8px;
-  margin-bottom: 12px;
-}
-
-.successBox {
-  background: rgba(16, 185, 129, 0.06);
-  color: #10b981;
-  border: 1px solid rgba(16, 185, 129, 0.12);
-  padding: 10px 14px;
-  border-radius: 8px;
-  margin-bottom: 12px;
-}
-
-/* Responsive Design */
+/* Responsive tweaks */
 @media (max-width: 768px) {
-  .mainContent {
-    padding: 0 16px;
-  }
+  .mainContent { padding: 0 16px; }
 
-  .studentName {
-    font-size: 1.75rem;
-  }
+  .studentName { font-size: 1.75rem; }
 
   .sectionHeader {
     flex-direction: column;
@@ -229,15 +213,7 @@
 }
 
 @media (max-width: 480px) {
-  .pageContainer {
-    padding-top: 70px;
-  }
-
-  .infoSection {
-    padding: 16px;
-  }
-
-  .studentName {
-    font-size: 1.5rem;
-  }
+  .pageContainer { padding-top: 70px; }
+  .infoSection { padding: 16px; }
+  .studentName { font-size: 1.5rem; }
 }

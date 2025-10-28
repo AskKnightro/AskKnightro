@@ -120,8 +120,19 @@ export default function Page() {
       storage.setItem("groups", JSON.stringify(groups));
       if (data.refreshToken) storage.setItem("ak_refresh", data.refreshToken);
 
-      const user = await getUserId(groups);
-      if (typeof user === "number" && user !== 0) storage.setItem("userId", String(user));
+      console.log("Fetching userId for groups:", groups);
+      const user = await getUserId(groups, storage);
+      console.log("Received userId:", user);
+      
+      if (typeof user === "number" && user !== 0) {
+        storage.setItem("userId", String(user));
+        console.log("✅ Stored userId:", user);
+      } else {
+        console.error("❌ Failed to get userId. User object:", user);
+        setFormError("Failed to load user profile. Please try again.");
+        setIsLoading(false);
+        return;
+      }
     
       await new Promise((resolve) => setTimeout(resolve, 0));      
       if (groups.includes("student")) {
@@ -132,22 +143,36 @@ export default function Page() {
       } catch (error: unknown){
         if (error instanceof Error) {
           console.error("Login error:", error.message);
+          setFormError(error.message || "Login failed");
       } else {
         console.log("An unknown error occurred during login.");
+        setFormError("An unknown error occurred during login");
       }
+    } finally {
+      setIsLoading(false);
     }
 
   };
 
-  const getUserId = async (groups: string[]): Promise<number | null> => {
-    const bearerTok = sessionStorage.getItem("ak_access") ?? localStorage.getItem("ak_access")
-    const role = groups[0]
-    const sub = sessionStorage.getItem("ak_sub") ?? localStorage.getItem("ak_sub")
+  const getUserId = async (groups: string[], storage: Storage): Promise<number | null> => {
+    const bearerTok = storage.getItem("ak_access");
+    const role = groups[0];
+    const sub = storage.getItem("ak_sub");
 
-    if(!bearerTok || !sub) return null;
+    console.log("getUserId - bearerTok exists:", !!bearerTok);
+    console.log("getUserId - sub:", sub);
+    console.log("getUserId - role:", role);
+
+    if(!bearerTok || !sub) {
+      console.error("❌ Missing bearerTok or sub");
+      return null;
+    }
 
     try{
-      const userIdRes = await fetch(`http://localhost:8080/api/auth/profile?sub=${sub}&role=${role}`,{
+      const url = `http://localhost:8080/api/auth/profile?sub=${encodeURIComponent(sub)}&role=${encodeURIComponent(role)}`;
+      console.log("Fetching profile from:", url);
+      
+      const userIdRes = await fetch(url,{
         method: "GET",
         headers:{
           "Content-Type": "application/json",
@@ -155,19 +180,22 @@ export default function Page() {
         },
       });
 
+      console.log("Profile response status:", userIdRes.status);
+
       if (!userIdRes.ok) {
-        console.error("Failed to fetch user ID:", userIdRes.status);
+        const errorText = await userIdRes.text();
+        console.error("❌ Failed to fetch user ID:", userIdRes.status, errorText);
         return null;
       }
       
       const data = await userIdRes.json();
-      console.log(data);
+      console.log("✅ Profile endpoint returned:", data);
       return data ?? null; 
     } catch (error: unknown) {
       if (error instanceof Error) {
-        console.error("Login error:", error.message);
+        console.error("❌ getUserId error:", error.message);
       } else {
-        console.log("An unknown error occurred during login.");
+        console.error("❌ An unknown error occurred in getUserId.");
       }
       
       return null;
