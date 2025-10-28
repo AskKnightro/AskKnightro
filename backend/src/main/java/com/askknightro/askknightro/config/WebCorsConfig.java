@@ -14,7 +14,7 @@ public class WebCorsConfig {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/api/**") // applies to all your REST endpoints
-                        .allowedOrigins("http://localhost:3000") // your frontend origin
+                        .allowedOrigins("http://localhost:3000", "http://localhost:3001") // your frontend origin
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                         .allowedHeaders("*")
                         .allowCredentials(true);

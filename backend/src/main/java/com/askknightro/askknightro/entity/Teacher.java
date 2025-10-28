@@ -35,4 +35,10 @@ public class Teacher {
     @OneToMany(mappedBy = "teacher", fetch = FetchType.LAZY)
     @Builder.Default
     private List<Course> courseClasses = new ArrayList<>();
+
+    @Column(name = "cognito_sub")
+    private String cognitoSub;
+
+    @Column(name = "cognito_username")
+    private String cognitoUsername;
 }

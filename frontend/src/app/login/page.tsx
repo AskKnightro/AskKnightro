@@ -6,13 +6,43 @@ import Link from "next/link";
 import Button from "../components/Button";
 import Footer from "../components/Footer";
 import styles from "./login.module.css";
+import { useRouter } from "next/navigation";
+// import { group } from "console";
+
+function base64UrlToJson(s: string): unknown {
+  const b64 = s.replace(/-/g, "+").replace(/_/g, "/");
+  const pad = "=".repeat((4 - (b64.length % 4)) % 4);
+  return JSON.parse(atob(b64 + pad));
+}
+
+function parseJwt(token: string): unknown {
+  const parts = token.split(".");
+  if (parts.length < 2) throw new Error("Invalid JWT");
+  return base64UrlToJson(parts[1]);
+}
+
+// Type guard for the fields you need
+type AccessClaims = {
+  "cognito:groups"?: string[];
+  sub?: string;
+  username?: string;
+  "cognito:username"?: string;
+  [k: string]: unknown;
+};
+
+function isAccessClaims(x: unknown): x is AccessClaims {
+  return typeof x === "object" && x !== null;
+}
 
 export default function Page() {
   const [showPassword, setShowPassword] = useState(false);
-  const [email, setEmail] = useState("");
+  const [username, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [emailError, setEmailError] = useState("");
+  const [formError, setFormError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
   const validateEmail = (emailValue: string) => {
     if (!emailValue) {
@@ -40,8 +70,10 @@ export default function Page() {
     }
   };
 
-  const handleLogin = () => {
-    const isEmailValid = validateEmail(email);
+  const handleLogin = async () => {
+    setFormError("");
+    setIsLoading(true);
+    const isEmailValid = validateEmail(username);
 
     if (!isEmailValid) {
       return;
@@ -52,8 +84,95 @@ export default function Page() {
       return;
     }
 
-    console.log("Login clicked", { email, password, rememberMe });
+    console.log("Login clicked", { username, password, rememberMe });
+
+    try {
+      const response = await fetch("http://localhost:8080/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ username: username.toLowerCase(), password }),
+      });
+
+      if (!response.ok) {
+        setFormError("Login Failed");
+        return;
+      }
+      console.log("Login successful");
+      
+      const data = await response.json();
+      const claimsUnknown = parseJwt(data.accessToken);
+
+      if (!isAccessClaims(claimsUnknown)) throw new Error("Bad token payload");
+      console.log((claimsUnknown as AccessClaims).sub);
+
+      const groups = Array.isArray((claimsUnknown as AccessClaims)["cognito:groups"])
+        ? (claimsUnknown as AccessClaims)["cognito:groups"]!
+        : [];
+
+
+      const storage = rememberMe ? localStorage : sessionStorage;
+      
+      storage.setItem("ak_access", data.accessToken ?? "");
+      storage.setItem("ak_id", data.idToken ?? "");
+      storage.setItem("ak_sub", (claimsUnknown as AccessClaims).sub ?? "");
+      storage.setItem("groups", JSON.stringify(groups));
+      if (data.refreshToken) storage.setItem("ak_refresh", data.refreshToken);
+
+      const user = await getUserId(groups);
+      if (typeof user === "number" && user !== 0) storage.setItem("userId", String(user));
+    
+      await new Promise((resolve) => setTimeout(resolve, 0));      
+      if (groups.includes("student")) {
+        router.push("/student-course-listing");
+      } else {
+        router.push("/teacher-dashboard");
+      }
+      } catch (error: unknown){
+        if (error instanceof Error) {
+          console.error("Login error:", error.message);
+      } else {
+        console.log("An unknown error occurred during login.");
+      }
+    }
+
   };
+
+  const getUserId = async (groups: string[]): Promise<number | null> => {
+    const bearerTok = sessionStorage.getItem("ak_access") ?? localStorage.getItem("ak_access")
+    const role = groups[0]
+    const sub = sessionStorage.getItem("ak_sub") ?? localStorage.getItem("ak_sub")
+
+    if(!bearerTok || !sub) return null;
+
+    try{
+      const userIdRes = await fetch(`http://localhost:8080/api/auth/profile?sub=${sub}&role=${role}`,{
+        method: "GET",
+        headers:{
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${bearerTok}`
+        },
+      });
+
+      if (!userIdRes.ok) {
+        console.error("Failed to fetch user ID:", userIdRes.status);
+        return null;
+      }
+      
+      const data = await userIdRes.json();
+      console.log(data);
+      return data ?? null; 
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.error("Login error:", error.message);
+      } else {
+        console.log("An unknown error occurred during login.");
+      }
+      
+      return null;
+    }
+  }
 
   return (
     <div className={styles.pageContainer}>
@@ -88,7 +207,7 @@ export default function Page() {
                   className={`${styles.input} ${
                     emailError ? styles.inputError : ""
                   }`}
-                  value={email}
+                  value={username}
                   onChange={handleEmailChange}
                   placeholder="Enter your email"
                 />
@@ -152,8 +271,12 @@ export default function Page() {
               </div>
 
               <div className={styles.buttonContainer}>
-                <Button label="Login" onClick={handleLogin} />
+                <Button label={isLoading ? "Logging in" : "Login"} onClick={handleLogin} disabled={isLoading}/>
               </div>
+
+              {formError && (
+                  <span className={styles.errorMessage}>{formError}</span>
+                )}
 
               <p className={styles.signupLink}>
                 Don&apos;t have an account?{" "}
