@@ -88,6 +88,7 @@ public class AskService {
         - If nothing relevant is found, start with: “I couldn’t find this in the provided materials.” Then give a brief, helpful background.
         - If the question seems ambiguous, state your assumption first.
         - Never include instructions or metadata in the reply.
+        - Make sure to return answers as markdown-formatted text.
         
         OUTPUT
         - Return only the final answer text.
