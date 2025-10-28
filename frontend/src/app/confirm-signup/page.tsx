@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+// import { useRouter } from "next/navigation";
 import Button from "../components/Button";
 import Footer from "../components/Footer";
 import styles from "./confirm-signup.module.css";
@@ -13,15 +13,21 @@ export default function ConfirmSignupPage() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("");
+  const [role, setRole] = useState("");
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
-  const router = useRouter();
+  // const router = useRouter();
 
   useEffect(() => {
     // Get email from URL params if passed from signup page
-    const urlParams = new URLSearchParams(window.location.search);
-    const emailParam = urlParams.get("email");
+    const emailParam = localStorage.getItem("tempEmail");
+    const roleParam = localStorage.getItem("tempRole");
+
     if (emailParam) {
       setEmail(emailParam);
+    }
+
+    if(roleParam) {
+      setRole(roleParam);
     }
 
     // Focus first input on mount
@@ -79,16 +85,31 @@ export default function ConfirmSignupPage() {
 
     setIsLoading(true);
     setError("");
+    const payload = {
+      username: email,
+      code: fullCode,
+      role: role, 
+    };
 
     try {
       // Simulate API call for confirmation
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      const response = await fetch("http://localhost:8080/api/auth/confirm-signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      })
 
+      if (!response.ok) {
+        setError("Confirmation failed");
+        return;
+      }
       // For now, just simulate success and redirect
-      console.log("Confirmation code:", fullCode);
+      console.log("Confirmation successfull!");
 
       // Redirect to login page
-      router.push("/login?confirmed=true");
+      localStorage.clear();
+      window.location.href = `/login`;
+      
     } catch {
       setError("Invalid confirmation code. Please try again.");
       setIsLoading(false);

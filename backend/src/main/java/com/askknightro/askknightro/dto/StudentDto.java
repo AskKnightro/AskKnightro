@@ -17,4 +17,6 @@ public class StudentDto{
     private LocalDate gradDate;
     private String schoolId;
     private String universityCollege;
+    private String cognitoSub;
+    private String cognitoUsername;
 }

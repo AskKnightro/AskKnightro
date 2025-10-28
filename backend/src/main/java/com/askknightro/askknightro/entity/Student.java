@@ -48,4 +48,11 @@ public class Student {
     @OneToMany(mappedBy = "student", fetch = FetchType.LAZY)
     @Builder.Default
     private List<ChatSession> chatSessions = new ArrayList<>();
+
+    @Column(name = "cognito_sub")
+    private String cognitoSub;
+
+    @Column(name = "cognito_username")
+    private String cognitoUsername;
+
 }

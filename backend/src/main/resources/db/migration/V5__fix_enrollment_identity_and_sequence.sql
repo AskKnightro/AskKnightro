@@ -78,7 +78,7 @@ DO $$
         -- If we found a sequence, bump it to MAX(enrollment_id)
         IF seq IS NOT NULL THEN
             EXECUTE format(
-                    'SELECT setval(%L, (SELECT COALESCE(MAX(enrollment_id),1) FROM enrollment), true)',
+                    'SELECT setval(%L, (SELECT COALESCE(MAX(enrollment_id),0) FROM enrollment), true)',
                     seq::text
                     );
         END IF;
