@@ -75,7 +75,7 @@ public class SecurityConfig {
             .requestMatchers("/api/actuator/health", "actuator/health").permitAll()
             .requestMatchers(HttpMethod.POST, "/api/auth/signup").permitAll()
             .requestMatchers(HttpMethod.POST, "/api/auth/confirm-signup").permitAll()
-            .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
+            .requestMatchers("/api/auth/login").permitAll()
             // .requestMatchers("/api/auth/**").permitAll()
             //.requestMatchers(HttpMethod.POST,"/api/teacher/**").hasRole("TEACHER")
             //.requestMatchers("/api/users/students/**").hasAnyRole("STUDENT")
