@@ -1,5 +1,5 @@
 PROJECT ?= askknightro
-COMPOSE := docker compose -p $(PROJECT) -f docker-compose.yml -f milvus.yml 
+COMPOSE := docker compose -p $(PROJECT) -f docker-compose.yml
 
 # Defaults for convenience
 SERVICE ?= backend   # used by `logs` and `sh`
@@ -9,7 +9,8 @@ TAIL    ?= 100
 
 up:         ## Start/refresh containers
 	$(COMPOSE) up -d
-
+up-attached: ## Start containers attached in this terminal
+	$(COMPOSE) up
 build:      ## Build images
 	$(COMPOSE) build
 
@@ -40,3 +41,6 @@ down-v:     ## Stop & remove containers + VOLUMES (DELETES DATA)
 migrate-milvus:
 	$(COMPOSE) run --rm milvus-migrate
 
+attach-%:   ## Start all (detached) then follow logs for the named service
+	$(COMPOSE) up -d
+	$(COMPOSE) logs -f --tail=$(TAIL) $*

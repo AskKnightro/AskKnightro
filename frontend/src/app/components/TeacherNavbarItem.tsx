@@ -1,4 +1,5 @@
 import React from "react";
+import Image from "next/image";
 import styles from "./TeacherNavbarItem.module.css";
 
 interface TeacherNavbarItemProps {
@@ -14,13 +15,25 @@ const TeacherNavbarItem: React.FC<TeacherNavbarItemProps> = ({
   isActive = false,
   onClick,
 }) => {
+  const isImageIcon = icon.endsWith(".png") || icon.endsWith(".jpg") || icon.endsWith(".svg");
+
   return (
     <div
       className={`${styles.navItem} ${isActive ? styles.active : ""}`}
       onClick={onClick}
     >
       <div className={styles.iconContainer}>
-        <span className={styles.icon}>{icon}</span>
+        {isImageIcon ? (
+          <Image
+            src={`/${icon}`}
+            alt={label}
+            width={24}
+            height={24}
+            className={styles.iconImage}
+          />
+        ) : (
+          <span className={styles.icon}>{icon}</span>
+        )}
       </div>
       <span className={styles.label}>{label}</span>
     </div>

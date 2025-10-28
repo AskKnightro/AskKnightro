@@ -9,4 +9,6 @@ import java.util.List;
 @Repository
 public interface ChatMessageRepository extends JpaRepository<ChatMessage, Integer> {
     List<ChatMessage> findBySessionIdOrderByTimestampAsc(Integer sessionId);
+
+    List<ChatMessage> findByStudentIdAndClassIdOrderByTimestampAsc(Integer studentId, Integer classId);
 }

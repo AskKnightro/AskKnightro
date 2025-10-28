@@ -1,115 +1,50 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
-import Image from "next/image";
-import Link from "next/link";
-import styles from "./Navbar.module.css";
+import React, { useState, useEffect } from "react";
+import PublicNavbar from "./PublicNavbar";
+import StudentNavbar from "./StudentNavbar";
+import TeacherTopNavbar from "./TeacherTopNavbar";
 
 export default function Navbar() {
-  const [open, setOpen] = useState(false);
-
-  const onKey = useCallback((e: KeyboardEvent) => {
-    if (e.key === "Escape") setOpen(false);
-  }, []);
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (open) window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [open, onKey]);
+    // Check both sessionStorage and localStorage for user groups
+    const groupsStr = sessionStorage.getItem("groups") ?? localStorage.getItem("groups");
+    
+    if (groupsStr) {
+      try {
+        const groups = JSON.parse(groupsStr) as string[];
+        // Determine role from groups (student or teacher)
+        if (groups.includes("student")) {
+          setUserRole("student");
+        } else if (groups.includes("teacher")) {
+          setUserRole("teacher");
+        } else {
+          setUserRole(null);
+        }
+      } catch {
+        setUserRole(null);
+      }
+    } else {
+      setUserRole(null);
+    }
+    
+    setIsLoading(false);
+  }, []);
 
-  return (
-    <header className={`${styles.navRoot} ${open ? styles.open : ""}`}>
-      <nav className={styles.inner} aria-label="Main navigation">
-        <div className={styles.logo}>
-          <Image
-            src="/knightro.png"
-            alt="AskKnightro Logo"
-            width={40}
-            height={40}
-            priority
-          />
-        </div>
-        <div className={styles.links}>
-          <Link className={styles.link} href="/">
-            Home
-          </Link>
-          <Link className={styles.link} href="/student-dashboard">
-            Dashboard
-          </Link>
-          <Link className={styles.link} href="/student-course-listing">
-            My Courses
-          </Link>
-          <Link className={styles.link} href="/course-enrollment">
-            Join Course
-          </Link>
-          <Link className={styles.link} href="/course-chat">
-            Course Chat
-          </Link>
-          <Link className={styles.link} href="/view-profile">
-            View Profile
-          </Link>
-        </div>
-        <button
-          aria-label={open ? "Close menu" : "Open menu"}
-          aria-expanded={open}
-          aria-controls="mobile-menu"
-          className={styles.hamburger}
-          onClick={() => setOpen((o) => !o)}
-          type="button"
-        >
-          <span />
-        </button>
-      </nav>
-      <div id="mobile-menu" className={styles.mobileMenu} role="menu">
-        <Link
-          className={styles.mobileLink}
-          role="menuitem"
-          href="/"
-          onClick={() => setOpen(false)}
-        >
-          Home
-        </Link>
-        <Link
-          className={styles.mobileLink}
-          role="menuitem"
-          href="/student-dashboard"
-          onClick={() => setOpen(false)}
-        >
-          Dashboard
-        </Link>
-        <Link
-          className={styles.mobileLink}
-          role="menuitem"
-          href="/student-course-listing"
-          onClick={() => setOpen(false)}
-        >
-          My Courses
-        </Link>
-        <Link
-          className={styles.mobileLink}
-          role="menuitem"
-          href="/course-enrollment"
-          onClick={() => setOpen(false)}
-        >
-          Join Course
-        </Link>
-        <Link
-          className={styles.mobileLink}
-          role="menuitem"
-          href="/course-chat"
-          onClick={() => setOpen(false)}
-        >
-          Course Chat
-        </Link>
-        <Link
-          className={styles.mobileLink}
-          role="menuitem"
-          href="/view-profile"
-          onClick={() => setOpen(false)}
-        >
-          View Profile
-        </Link>
-      </div>
-    </header>
-  );
+  // Prevent flash of wrong navbar during loading
+  if (isLoading) {
+    return null;
+  }
+
+  // Render appropriate navbar based on user role
+  if (userRole === "student") {
+    return <StudentNavbar />;
+  } else if (userRole === "teacher") {
+    return <TeacherTopNavbar />;
+  } else {
+    return <PublicNavbar />;
+  }
 }

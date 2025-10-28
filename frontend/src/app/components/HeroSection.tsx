@@ -1,11 +1,42 @@
 "use client";
 
-import React from "react";
-import Link from "next/link";
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Button from "./Button";
 import styles from "./HeroSection.module.css";
 
 export default function HeroSection() {
+  const router = useRouter();
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // Check both sessionStorage and localStorage for user role
+    const groupsStr = sessionStorage.getItem("groups") ?? localStorage.getItem("groups");
+    if (groupsStr) {
+      const groups = JSON.parse(groupsStr) as string[];
+      if (groups.includes("student")) {
+        setUserRole("student");
+      } else if (groups.includes("teacher")) {
+        setUserRole("teacher");
+      }
+    }
+    setIsLoading(false);
+  }, []);
+
+  const handleGetStarted = () => {
+    if (isLoading) return;
+
+    // Navigate based on user role
+    if (userRole === "student") {
+      router.push("/student-dashboard");
+    } else if (userRole === "teacher") {
+      router.push("/teacher-dashboard");
+    } else {
+      router.push("/signup");
+    }
+  };
+
   return (
     <section className={styles.heroContainer}>
       <div className={styles.contentWrapper}>
@@ -24,9 +55,7 @@ export default function HeroSection() {
             anywhere.
           </p>
           <div className={styles.ctaContainer}>
-            <Link href="/signup">
-              <Button label="Get Started" onClick={() => {}} />
-            </Link>
+            <Button label="Get Started" onClick={handleGetStarted} />
           </div>
         </div>
         <div className={styles.imageContainer}>

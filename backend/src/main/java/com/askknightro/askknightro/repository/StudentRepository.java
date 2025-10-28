@@ -14,4 +14,5 @@ public interface StudentRepository extends JpaRepository<Student, Integer>
     boolean existsByEmail(String email);
     boolean existsByCognitoSub(String cognitoSub);
     Optional<Student> findByEmail(String email);
+    Student findIdByCognitoSub(String cognitoSub);
 }

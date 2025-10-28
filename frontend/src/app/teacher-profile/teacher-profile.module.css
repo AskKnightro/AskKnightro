@@ -1,0 +1,219 @@
+/* Page layout */
+.pageContainer {
+  min-height: 100vh;
+  background-color: #f8f9fa;
+  padding-top: 80px;
+  padding-bottom: 40px;
+}
+
+.mainContent {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* Section / Card */
+.infoSection {
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  margin-bottom: 24px;
+  padding: 24px;
+}
+
+/* Header */
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.studentName {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #333;
+  margin: 0;
+}
+
+.editButtonContainer {
+  display: flex;
+  gap: 12px;
+}
+
+.editActions {
+  display: flex;
+  gap: 12px;
+}
+
+.cancelButton {
+  background-color: transparent;
+  color: #6c757d;
+  border: 2px solid #6c757d;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.cancelButton:hover {
+  background-color: #6c757d;
+  color: white;
+}
+
+.cancelButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.logoutButton {
+  background-color: #dc3545;
+  color: white;
+  border: 2px solid #dc3545;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.logoutButton:hover {
+  background-color: #c82333;
+  border-color: #bd2130;
+}
+
+/* Status banners */
+.loading {
+  color: #6c757d;
+  padding: 8px 12px;
+}
+
+.errorBox {
+  background: rgba(239, 68, 68, 0.06);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.12);
+  padding: 10px 14px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+
+.successBox {
+  background: rgba(16, 185, 129, 0.06);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.12);
+  padding: 10px 14px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+
+/* Grid of fields */
+.infoGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.infoField {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fieldLabel {
+  font-weight: 600;
+  color: #495057;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.fieldValue {
+  padding: 12px 16px;
+  background-color: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 6px;
+  color: #333;
+  font-size: 1rem;
+}
+
+/* Inputs (match student style) */
+.editInput,
+.editSelect {
+  padding: 12px 16px;
+  border: 2px solid #ffd700;
+  border-radius: 6px;
+  font-size: 1rem;
+  color: #333;
+  background-color: #fff;
+  transition: border-color 0.3s ease;
+  outline: none;
+}
+
+.editTextarea {
+  padding: 12px 16px;
+  border: 2px solid #ffd700;
+  border-radius: 6px;
+  font-size: 1rem;
+  color: #333;
+  background-color: #fff;
+  transition: border-color 0.3s ease;
+  outline: none;
+  resize: vertical;
+  min-height: 140px;
+}
+
+.editInput:focus,
+.editSelect:focus,
+.editTextarea:focus {
+  border-color: #ffed4e;
+  box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.1);
+}
+
+/* Preview avatar */
+.preview {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.avatar {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+  background: #fff;
+}
+
+/* Responsive tweaks */
+@media (max-width: 768px) {
+  .mainContent { padding: 0 16px; }
+
+  .studentName { font-size: 1.75rem; }
+
+  .sectionHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .editButtonContainer {
+    width: 100%;
+  }
+
+  .infoGrid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .pageContainer { padding-top: 70px; }
+  .infoSection { padding: 16px; }
+  .studentName { font-size: 1.5rem; }
+}

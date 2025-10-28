@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("api/chat-messages")
+@RequestMapping("api/messages")
 @RequiredArgsConstructor
 public class ChatMessageController {
 
@@ -34,6 +34,19 @@ public class ChatMessageController {
             List<ChatMessageDto> messages = chatMessageService.getMessagesBySessionId(sessionId);
             return ResponseEntity.ok(messages);
         } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
+    @GetMapping("/student/{studentId}/class/{classId}")
+    public ResponseEntity<List<ChatMessageDto>> getMessagesByStudentAndClass(
+            @PathVariable Integer studentId,
+            @PathVariable Integer classId) {
+        try {
+            List<ChatMessageDto> messages = chatMessageService.getMessagesByStudentAndClass(studentId, classId);
+            return ResponseEntity.ok(messages);
+        } catch (Exception e) {
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }

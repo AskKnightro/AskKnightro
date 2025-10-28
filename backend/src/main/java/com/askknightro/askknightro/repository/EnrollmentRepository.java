@@ -32,4 +32,10 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, Integer>
     @Query(value = "DELETE FROM enrollment WHERE class_id = :classId AND student_id = :studentId", nativeQuery = true)
     int deleteByClassIdAndStudentIdNative(@Param("classId") Integer classId,
                                           @Param("studentId") Integer studentId);
+
+    // Hard delete all enrollments for a class
+    @Modifying
+    @Transactional
+    @Query(value = "DELETE FROM enrollment WHERE class_id = :classId", nativeQuery = true)
+    int deleteByClassId(@Param("classId") Integer classId);
 }

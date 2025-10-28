@@ -55,6 +55,28 @@
   color: white;
 }
 
+.cancelButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.logoutButton {
+  background-color: #dc3545;
+  color: white;
+  border: 2px solid #dc3545;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.logoutButton:hover {
+  background-color: #c82333;
+  border-color: #bd2130;
+}
+
 /* Info Sections */
 .infoSection {
   background-color: white;
@@ -120,50 +142,7 @@
   box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.1);
 }
 
-/* Courses Table */
-.coursesTable {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.tableHeader {
-  display: grid;
-  grid-template-columns: 1fr 2fr 1.5fr 1fr 1fr 1fr;
-  gap: 16px;
-  padding: 16px;
-  background-color: #ffd700;
-  border-radius: 8px;
-  font-weight: 600;
-  color: #333;
-  font-size: 0.875rem;
-}
-
-.tableRow {
-  display: grid;
-  grid-template-columns: 1fr 2fr 1.5fr 1fr 1fr 1fr;
-  gap: 16px;
-  padding: 16px;
-  background-color: #f8f9fa;
-  border-radius: 8px;
-  border: 1px solid #e9ecef;
-  transition: background-color 0.2s ease;
-}
-
-.tableRow:hover {
-  background-color: #e9ecef;
-}
-
-.courseCode {
-  font-weight: 600;
-  color: #333;
-}
-
-.grade {
-  font-weight: 600;
-  color: #28a745;
-}
-
+/* Courses list */
 .coursesList {
   display: flex;
   flex-direction: column;
@@ -188,76 +167,70 @@
   font-size: 0.8rem;
 }
 
+/* Preview avatar */
+.preview {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.avatar {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+  background: #fff;
+}
+
+/* Status banners */
+.errorBox {
+  background: rgba(239, 68, 68, 0.06);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.12);
+  padding: 10px 14px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+
+.successBox {
+  background: rgba(16, 185, 129, 0.06);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.12);
+  padding: 10px 14px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .mainContent {
     padding: 0 16px;
   }
 
-  .headerSection {
-    padding: 20px;
-  }
-
-  .profileHeader {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .avatarSection {
-    flex-direction: column;
-    text-align: center;
-  }
-
-  .avatar {
-    width: 100px;
-    height: 100px;
-  }
-
   .studentName {
     font-size: 1.75rem;
+  }
+
+  .sectionHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .editButtonContainer {
+    width: 100%;
   }
 
   .infoGrid {
     grid-template-columns: 1fr;
     gap: 16px;
   }
-
-  .tableHeader,
-  .tableRow {
-    grid-template-columns: 1fr;
-    gap: 8px;
-  }
-
-  .tableHeader {
-    display: none;
-  }
-
-  .tableRow {
-    display: flex;
-    flex-direction: column;
-    padding: 12px;
-  }
-
-  .tableRow span {
-    display: flex;
-    justify-content: space-between;
-    padding: 4px 0;
-  }
-
-  .tableRow span:before {
-    content: attr(data-label);
-    font-weight: 600;
-    color: #666;
-  }
 }
 
 @media (max-width: 480px) {
   .pageContainer {
     padding-top: 70px;
-  }
-
-  .headerSection {
-    padding: 16px;
   }
 
   .infoSection {

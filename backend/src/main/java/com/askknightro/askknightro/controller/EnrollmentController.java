@@ -27,9 +27,8 @@ public class EnrollmentController
     }
 
     // Endpoint for fetching single student of a given course
-    @GetMapping("/{user_id}")
-    public ResponseEntity<StudentDto> readStudent(@PathVariable int course_id, @PathVariable int student_id)
-    {
+    @GetMapping("/{course_id}/students/{student_id}")
+    public ResponseEntity<StudentDto> readStudent(@PathVariable int course_id, @PathVariable int student_id) {
         StudentDto dto = enrollmentService.readStudent(course_id, student_id);
         return ResponseEntity.ok(dto);
     }

@@ -1,5 +1,5 @@
 .dashboardContainer {
-  margin-left: 200px; /* Account for sidebar width */
+  margin-left: 140px; /* Account for sidebar width */
   padding-top: 50px; /* Account for fixed main navbar */
   min-height: 100vh;
   background-color: white;
@@ -91,7 +91,7 @@
 /* Responsive Design */
 @media (max-width: 1024px) {
   .dashboardContainer {
-    margin-left: 200px;
+    margin-left: 140px;
   }
 
   .mainContent {

@@ -54,7 +54,7 @@ public class SecurityConfig {
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(Arrays.asList("http://localhost:3000", "http://localhost:3001")); // your frontend
-        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With"));
         config.setAllowCredentials(true);
 
@@ -75,6 +75,7 @@ public class SecurityConfig {
             .requestMatchers("/api/actuator/health", "actuator/health").permitAll()
             .requestMatchers(HttpMethod.POST, "/api/auth/signup").permitAll()
             .requestMatchers(HttpMethod.POST, "/api/auth/confirm-signup").permitAll()
+            .requestMatchers("/api/auth/login").permitAll()
             // .requestMatchers("/api/auth/**").permitAll()
             //.requestMatchers(HttpMethod.POST,"/api/teacher/**").hasRole("TEACHER")
             //.requestMatchers("/api/users/students/**").hasAnyRole("STUDENT")
