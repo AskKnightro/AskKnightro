@@ -6,13 +6,41 @@ import Link from "next/link";
 import Button from "../components/Button";
 import Footer from "../components/Footer";
 import styles from "./login.module.css";
+import { useRouter } from "next/navigation";
+
+function base64UrlToJson(s: string): unknown {
+  const b64 = s.replace(/-/g, "+").replace(/_/g, "/");
+  const pad = "=".repeat((4 - (b64.length % 4)) % 4);
+  return JSON.parse(atob(b64 + pad));
+}
+
+function parseJwt(token: string): unknown {
+  const parts = token.split(".");
+  if (parts.length < 2) throw new Error("Invalid JWT");
+  return base64UrlToJson(parts[1]);
+}
+
+// Type guard for the fields you need
+type AccessClaims = {
+  "cognito:groups"?: string[];
+  sub?: string;
+  username?: string;
+  "cognito:username"?: string;
+  [k: string]: unknown;
+};
+
+function isAccessClaims(x: unknown): x is AccessClaims {
+  return typeof x === "object" && x !== null;
+}
 
 export default function Page() {
   const [showPassword, setShowPassword] = useState(false);
-  const [email, setEmail] = useState("");
+  const [username, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [emailError, setEmailError] = useState("");
+  const [formError, setFormError] = useState("");
+  const router = useRouter();
 
   const validateEmail = (emailValue: string) => {
     if (!emailValue) {
@@ -40,8 +68,9 @@ export default function Page() {
     }
   };
 
-  const handleLogin = () => {
-    const isEmailValid = validateEmail(email);
+  const handleLogin = async () => {
+    setFormError("");
+    const isEmailValid = validateEmail(username);
 
     if (!isEmailValid) {
       return;
@@ -52,7 +81,51 @@ export default function Page() {
       return;
     }
 
-    console.log("Login clicked", { email, password, rememberMe });
+    console.log("Login clicked", { username, password, rememberMe });
+
+    try {
+      const response = await fetch("http://localhost:8080/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ username: username.toLowerCase(), password }),
+      });
+
+      if (!response.ok) {
+        setFormError("Login Failed");
+        return;
+      }
+      console.log("Login successful");
+      
+      const data = await response.json();
+      if(rememberMe){
+        localStorage.setItem("ak_access", data.accessToken);
+        localStorage.setItem("ak_id", data.idToken);
+        if (data.refreshToken) localStorage.setItem("ak_refresh", data.refreshToken);
+      }
+      
+      const claimsUnknown = parseJwt(data.accessToken);
+      if (!isAccessClaims(claimsUnknown)) throw new Error("Bad token payload");
+      const groups = Array.isArray(claimsUnknown["cognito:groups"])
+        ? claimsUnknown["cognito:groups"]!
+        : [];
+
+      localStorage.setItem("groups", groups);
+      
+      if (groups.includes("student")) {
+        router.push("/student-dashboard");
+      } else {
+        router.push("/teacher-dashboard");
+      }
+      } catch (error: unknown){
+        if (error instanceof Error) {
+          console.error("Login error:", error.message);
+      } else {
+        console.log("An unknown error occurred during login.");
+      }
+    }
+
   };
 
   return (
@@ -88,7 +161,7 @@ export default function Page() {
                   className={`${styles.input} ${
                     emailError ? styles.inputError : ""
                   }`}
-                  value={email}
+                  value={username}
                   onChange={handleEmailChange}
                   placeholder="Enter your email"
                 />
@@ -154,6 +227,10 @@ export default function Page() {
               <div className={styles.buttonContainer}>
                 <Button label="Login" onClick={handleLogin} />
               </div>
+
+              {formError && (
+                  <span className={styles.errorMessage}>{formError}</span>
+                )}
 
               <p className={styles.signupLink}>
                 Don&apos;t have an account?{" "}
