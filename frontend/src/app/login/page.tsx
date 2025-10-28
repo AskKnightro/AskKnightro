@@ -125,7 +125,7 @@ export default function Page() {
     
       await new Promise((resolve) => setTimeout(resolve, 0));      
       if (groups.includes("student")) {
-        router.push("/student-course-listing");
+        router.push("/student-dashboard");
       } else {
         router.push("/teacher-dashboard");
       }

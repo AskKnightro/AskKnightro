@@ -49,6 +49,11 @@ public class CourseManagementController
         return ResponseEntity.ok(updated);
     }
 
-
+    // CourseManagementController.java
+    @DeleteMapping("/{course_id}")
+    public ResponseEntity<Void> deleteCourse(@PathVariable("course_id") int courseId) {
+        courseManagementService.deleteCourse(courseId);
+        return ResponseEntity.noContent().build();
+    }
 
 }

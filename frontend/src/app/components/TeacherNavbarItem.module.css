@@ -35,6 +35,17 @@
   font-weight: bold;
 }
 
+.iconImage {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  transition: transform 0.3s ease;
+}
+
+.navItem:hover .iconImage {
+  transform: scale(1.1);
+}
+
 .label {
   font-size: 12px;
   font-weight: 600;

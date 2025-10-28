@@ -1,96 +1,20 @@
 .pageContainer {
-  margin-left: 200px;
-  padding-top: 50px;
   min-height: 100vh;
-  background-color: white;
+  background: linear-gradient(to bottom, #f8f9fa 0%, #ffffff 100%);
+  padding: 20px 0 60px;
+  margin-left: 140px; /* Account for teacher navbar */
 }
 
 .mainContent {
-  padding: 40px;
   max-width: 1200px;
   margin: 0 auto;
+  padding: 0 20px;
 }
 
-.headerSection {
-  margin-bottom: 40px;
-  padding-bottom: 20px;
-  border-bottom: 2px solid #f0f0f0;
-}
-
-.pageTitle {
-  font-size: 2.5rem;
-  font-weight: bold;
-  color: #333;
-  margin: 0 0 12px 0;
-}
-
-.pageSubtitle {
-  font-size: 1.125rem;
-  color: #666;
-  margin: 0;
-}
-
-.contentSection {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-  margin-bottom: 40px;
-}
-
-.materialsCard {
-  background-color: white;
-  border-radius: 12px;
-  padding: 24px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e5e5e5;
-}
-
-.sectionTitle {
-  font-size: 1.25rem;
-  font-weight: bold;
-  color: #333;
-  margin: 0 0 16px 0;
-  border-bottom: 2px solid #f0f0f0;
-  padding-bottom: 8px;
-}
-
-.placeholder {
-  color: #666;
-  font-style: italic;
-  margin: 0;
-  padding: 20px 0;
-  text-align: center;
-}
-
-.backLinkContainer {
-  display: flex;
-  justify-content: center;
-  padding-top: 20px;
-  border-top: 1px solid #e5e5e5;
-}
-
-.backLink {
-  color: #ffd700;
-  text-decoration: none;
-  font-weight: 600;
-  padding: 8px 16px;
-  border-radius: 6px;
-  transition: all 0.3s ease;
-}
-
-.backLink:hover {
-  background-color: #ffd700;
-  color: #333;
-}
-
-/* Responsive Design */
+/* Responsive adjustments for navbar */
 @media (max-width: 1024px) {
   .pageContainer {
-    margin-left: 200px;
-  }
-
-  .mainContent {
-    padding: 24px;
+    margin-left: 140px;
   }
 }
 
@@ -98,27 +22,222 @@
   .pageContainer {
     margin-left: 80px;
   }
-
-  .mainContent {
-    padding: 20px;
-  }
-
-  .pageTitle {
-    font-size: 2rem;
-  }
 }
 
 @media (max-width: 480px) {
   .pageContainer {
     margin-left: 0;
-    padding-top: 60px;
+  }
+}
+
+.headerSection {
+  text-align: center;
+  margin-bottom: 40px;
+  padding: 40px 20px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.pageTitle {
+  font-size: 2.5rem;
+  color: #1a1a1a;
+  margin-bottom: 10px;
+  font-weight: 700;
+}
+
+.pageSubtitle {
+  font-size: 1.2rem;
+  color: #666;
+  margin: 0;
+}
+
+.errorMessage {
+  background: #fee;
+  color: #c33;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  text-align: center;
+  border: 1px solid #fcc;
+}
+
+.loadingMessage {
+  text-align: center;
+  padding: 60px 20px;
+  font-size: 1.2rem;
+  color: #666;
+}
+
+.contentSection {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  margin-bottom: 40px;
+}
+
+.materialsCard {
+  background: white;
+  border-radius: 12px;
+  padding: 32px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.sectionTitle {
+  font-size: 1.75rem;
+  color: #1a1a1a;
+  margin: 0 0 24px 0;
+  font-weight: 700;
+}
+
+.placeholder {
+  color: #888;
+  font-size: 1rem;
+  margin: 0;
+  padding: 40px 0;
+  text-align: center;
+}
+
+.materialsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+.materialCard {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.materialCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-color: #ffc629;
+}
+
+.materialIcon {
+  font-size: 2.5rem;
+  min-width: 50px;
+  text-align: center;
+}
+
+.materialInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.materialName {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0 0 8px 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.materialMeta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.875rem;
+  color: #666;
+}
+
+.metaItem {
+  white-space: nowrap;
+}
+
+.metaSeparator {
+  color: #ccc;
+}
+
+.infoCard {
+  background: linear-gradient(135deg, #fff9e6 0%, #ffecb3 100%);
+  border: 2px solid #ffc629;
+  border-radius: 12px;
+  padding: 24px;
+}
+
+.infoTitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0 0 12px 0;
+}
+
+.infoText {
+  font-size: 1rem;
+  color: #555;
+  margin: 0;
+  line-height: 1.6;
+}
+
+.backLinkContainer {
+  text-align: center;
+  margin-top: 40px;
+}
+
+.backLink {
+  display: inline-block;
+  padding: 12px 32px;
+  background: #f0f0f0;
+  color: #333;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.backLink:hover {
+  background: #e0e0e0;
+  transform: translateY(-2px);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .pageTitle {
+    font-size: 2rem;
   }
 
-  .mainContent {
-    padding: 16px;
+  .materialsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .materialsCard {
+    padding: 24px;
+  }
+
+  .sectionTitle {
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .headerSection {
+    padding: 24px 16px;
   }
 
   .pageTitle {
     font-size: 1.75rem;
+  }
+
+  .pageSubtitle {
+    font-size: 1rem;
+  }
+
+  .materialCard {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .materialIcon {
+    font-size: 3rem;
   }
 }

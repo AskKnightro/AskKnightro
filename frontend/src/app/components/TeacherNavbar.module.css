@@ -3,7 +3,7 @@
   left: 0;
   top: 50px; /* Start right under the main navbar (50px height) */
   bottom: 0; /* Extend to very bottom */
-  width: 200px;
+  width: 140px;
   background-color: #ffd700; /* Bright yellow */
   border-right: 2px solid #e6c200;
   z-index: 100;

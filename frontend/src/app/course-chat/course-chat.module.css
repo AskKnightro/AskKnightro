@@ -143,6 +143,19 @@
   border: 1px solid #e5e7eb;
 }
 
+/* Styles for Markdown lists */
+.messageText ul {
+  margin: 0;
+  padding-left: 1.5rem; /* Indent bullet points */
+  list-style-type: disc; /* Ensure bullet points are visible */
+}
+
+.messageText li {
+  color: #1f2937; /* Ensure text is fully visible */
+  font-size: 0.95rem; /* Match the font size of other text */
+  line-height: 1.5; /* Improve readability */
+}
+
 .userMessage .messageText {
   background-color: #ffd700;
   color: #1f2937;

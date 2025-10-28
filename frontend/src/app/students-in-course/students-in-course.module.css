@@ -1,5 +1,5 @@
 .pageContainer {
-  margin-left: 200px;
+  margin-left: 140px;
   padding-top: 50px;
   min-height: 100vh;
   background-color: white;
@@ -86,7 +86,7 @@
 /* Responsive Design */
 @media (max-width: 1024px) {
   .pageContainer {
-    margin-left: 200px;
+    margin-left: 140px;
   }
 
   .mainContent {
@@ -121,4 +121,133 @@
   .pageTitle {
     font-size: 1.75rem;
   }
+}
+
+/* Scrollable, clickable list */
+.studentsList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 360px;      /* makes it scrollable */
+  overflow: auto;
+  border: 1px solid #eee;
+  border-radius: 10px;
+}
+
+.studentItem {
+  padding: 12px 14px;
+  border-bottom: 1px solid #f5f5f5;
+  cursor: pointer;
+  outline: none;
+  background: #fff;
+}
+.studentItem:last-child {
+  border-bottom: none;
+}
+.studentItem:hover,
+.studentItem:focus {
+  background: #fafafa;
+}
+.studentItemActive {
+  background: #fff8dc; /* light golden */
+  border-left: 4px solid #ffd700;
+}
+
+.studentName {
+  font-weight: 600;
+  color: #333;
+}
+
+.studentMeta {
+  margin-top: 4px;
+  font-size: 0.9rem;
+  color: #666;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* Details card reused from your earlier patterns */
+.detailCard {
+  border: 1px solid #eee;
+  border-radius: 10px;
+  padding: 12px;
+  background: #fcfcfc;
+  margin-top: 10px;
+}
+.detailRow {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 10px;
+  padding: 6px 0;
+  border-bottom: 1px dashed #eee;
+}
+.detailRow:last-child {
+  border-bottom: none;
+}
+.detailLabel {
+  color: #666;
+  font-weight: 600;
+}
+.detailValue {
+  color: #333;
+}
+
+/* list row layout and actions */
+.studentRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.studentMain {
+  min-width: 0; /* ensures text wraps nicely */
+}
+.studentActions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.viewBtn,
+.removeBtn {
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid #e5e5e5;
+  background: #fafafa;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+.viewBtn:disabled,
+.removeBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.removeBtn {
+  color: #b00020;
+  border-color: #f3c6cc;
+  background: #fff5f6;
+}
+
+.chatHistoryBtn {
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid #007bff;
+  background: #e7f3ff;
+  color: #007bff;
+  font-size: 0.9rem;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  display: inline-block;
+}
+
+.chatHistoryBtn:hover {
+  background: #007bff;
+  color: white;
+}
+
+/* detail panel actions */
+.detailActions {
+  margin-top: 12px;
+  display: flex;
+  justify-content: flex-end;
 }

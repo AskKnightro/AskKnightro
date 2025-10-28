@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import Navbar from "../components/Navbar";
+import React, { useState, useEffect } from "react";
+import StudentNavbar from "../components/StudentNavbar";
 import Footer from "../components/Footer";
 import styles from "./course-enrollment.module.css";
 
@@ -21,9 +21,6 @@ interface Course {
   meetingTime?: string;
   description?: string;
 }
-
-// hardcode a student for now
-const STUDENT_ID = 1;
 
 // helper to narrow unknown error to a readable message
 function getErrorMessage(err: unknown): string {
@@ -54,12 +51,33 @@ export default function CourseEnrollmentPage() {
   const [messageType, setMessageType] = useState<"success" | "error" | "">("");
   const [foundCourse, setFoundCourse] = useState<Course | null>(null);
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const [studentId, setStudentId] = useState<number | null>(null);
+
+  // Load studentId from storage on client side only
+  useEffect(() => {
+    const id = sessionStorage.getItem("userId") ?? localStorage.getItem("userId");
+    if (id) {
+      setStudentId(parseInt(id, 10));
+    }
+  }, []);
+
+  // Helper to get auth headers
+  const getAuthHeaders = () => {
+    const token = sessionStorage.getItem("ak_access") ?? localStorage.getItem("ak_access");
+    return {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    };
+  };
 
   async function enrollStudent(code: string) {
+    if (!studentId) {
+      throw new Error("Student ID not found. Please log in again.");
+    }
     const res = await fetch(`http://localhost:8080/api/enrollments/enroll`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ studentId: STUDENT_ID, enrollmentCode: code }),
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ studentId: studentId, enrollmentCode: code }),
     });
     if (res.status !== 204) {
       let msg = `Enrollment failed (${res.status})`;
@@ -75,9 +93,15 @@ export default function CourseEnrollmentPage() {
   }
 
   async function fetchMyCourses(): Promise<Course[]> {
+    if (!studentId) {
+      throw new Error("Student ID not found. Please log in again.");
+    }
     const res = await fetch(
-        `http://localhost:8080/api/users/courses/user/${STUDENT_ID}?role=STUDENT`,
-        { cache: "no-store" }
+        `http://localhost:8080/api/users/courses/user/${studentId}?role=STUDENT`,
+        { 
+          headers: getAuthHeaders(),
+          cache: "no-store" 
+        }
     );
     if (!res.ok) {
       let msg = `Fetching courses failed (${res.status})`;
@@ -112,7 +136,7 @@ export default function CourseEnrollmentPage() {
       // 1) Enroll the student
       await enrollStudent(code);
 
-      // 2) Pull student’s courses and locate the just-enrolled course by code
+      // 2) Pull student's courses and locate the just-enrolled course by code
       const courses = await fetchMyCourses();
       const enrolled = courses.find(
           (c) => c.enrollmentCode?.toUpperCase() === code.toUpperCase()
@@ -125,11 +149,30 @@ export default function CourseEnrollmentPage() {
         return;
       }
 
+      // 3) Fetch teacher name if teacherId is available
+      let instructorName = "TBA";
+      if (enrolled.teacherId != null) {
+        try {
+          const teacherRes = await fetch(
+            `http://localhost:8080/api/users/teachers/${enrolled.teacherId}`,
+            { headers: getAuthHeaders() }
+          );
+          if (teacherRes.ok) {
+            const teacherData = await teacherRes.json();
+            instructorName = teacherData.name || `Teacher #${enrolled.teacherId}`;
+          } else {
+            instructorName = `Teacher #${enrolled.teacherId}`;
+          }
+        } catch {
+          instructorName = `Teacher #${enrolled.teacherId}`;
+        }
+      }
+
       const uiCourse: Course = {
         ...enrolled,
         subject: "Course",
         section: `Class #${enrolled.classId}`,
-        instructor: enrolled.teacherId != null ? `Teacher #${enrolled.teacherId}` : "TBA",
+        instructor: instructorName,
         credits: 3,
         meetingTime: enrolled.semester || "TBA",
         description: enrolled.courseDescription ?? undefined,
@@ -164,7 +207,7 @@ export default function CourseEnrollmentPage() {
 
   return (
       <>
-        <Navbar />
+        <StudentNavbar />
         <div className={styles.pageContainer}>
           <main className={styles.mainContent}>
             <div className={styles.headerSection}>

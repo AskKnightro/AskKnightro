@@ -1,61 +1,231 @@
 "use client";
 
-import React, { useState } from "react";
-import Navbar from "../components/Navbar";
+import React, { useState, useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
+import TeacherTopNavbar from "../components/TeacherTopNavbar";
 import Footer from "../components/Footer";
 import TeacherNavbar from "../components/TeacherNavbar";
 import Link from "next/link";
 import styles from "./course-info.module.css";
 
-const CourseInfoPage: React.FC = () => {
+const API_BASE =
+  process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080";
+
+interface CourseMaterial {
+  id: number;
+  classId: number;
+  name: string;
+  filename: string;
+  s3Key: string;
+  uploadedAt: string;
+  size?: string;
+}
+
+const CourseInfoContent: React.FC = () => {
+  const searchParams = useSearchParams();
   const [isEditing, setIsEditing] = useState(false);
-  const [courseData, setCourseData] = useState({
-    courseName: "Introduction to Psychology",
-    subject: "Psychology",
-    section: "PSY 101 - Section 002",
-    description:
-      "This course provides an introduction to the scientific study of human behavior and mental processes.",
-    credits: "3",
-    semester: "Fall 2024",
-    meetingTime: "MWF 10:00 AM - 11:00 AM",
-    location: "Room 201, Psychology Building",
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [courseId, setCourseId] = useState<number | null>(null);
+  const [uploadingFile, setUploadingFile] = useState(false);
+  const [materialsLoading, setMaterialsLoading] = useState(false);
+  const [editingFileId, setEditingFileId] = useState<number | null>(null);
+  const [editingFileName, setEditingFileName] = useState<string>("");
+  const [replacingFileId, setReplacingFileId] = useState<number | null>(null);
+  const [deletingCourse, setDeletingCourse] = useState(false);
+
+  const [courseData, setCourseData] = useState<{
+    classId: number | null;
+    enrollmentCode: string;
+    courseName: string;
+    semester: string;
+    courseDescription: string;
+  }>({
+    classId: null,
+    enrollmentCode: "",
+    courseName: "",
+    semester: "",
+    courseDescription: "",
   });
 
-  // Sample uploaded files - in a real app, this would come from your backend/database
-  const [uploadedFiles, setUploadedFiles] = useState([
-    {
-      id: 1,
-      name: "syllabus.txt",
-      uploadDate: "2024-10-15",
-      size: "2.3 KB",
-    },
-    {
-      id: 2,
-      name: "course-outline.txt",
-      uploadDate: "2024-10-18",
-      size: "4.1 KB",
-    },
-    {
-      id: 3,
-      name: "reading-list.txt",
-      uploadDate: "2024-10-20",
-      size: "1.8 KB",
-    },
-  ]);
+  // Helper to get auth headers
+  const getAuthHeaders = () => {
+    const token = sessionStorage.getItem("ak_access") ?? localStorage.getItem("ak_access");
+    return {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    };
+  };
+
+  // Helper for multipart requests (don't set Content-Type, let browser set boundary)
+  const getAuthHeadersMultipart = () => {
+    const token = sessionStorage.getItem("ak_access") ?? localStorage.getItem("ak_access");
+    const headers: HeadersInit = {};
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+    return headers;
+  };
+
+  // Load course data on component mount
+  useEffect(() => {
+    const loadCourseData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Get courseId from URL params
+        const courseIdParam = searchParams.get("courseId");
+        if (!courseIdParam) {
+          setError("Course ID is missing from URL");
+          setLoading(false);
+          return;
+        }
+
+        const id = parseInt(courseIdParam, 10);
+        if (isNaN(id)) {
+          setError("Invalid course ID in URL");
+          setLoading(false);
+          return;
+        }
+
+        setCourseId(id);
+
+        const response = await fetch(`${API_BASE}/api/users/courses/${id}`, {
+          method: "GET",
+          headers: getAuthHeaders(),
+          // credentials: "include", // uncomment if your API uses cookies
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch course: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        console.log("Received course data from API:", data);
+
+        setCourseData({
+          classId: data.classId ?? null,
+          enrollmentCode: data.enrollmentCode ?? "",
+          courseName: data.courseName ?? "",
+          semester: data.semester ?? "",
+          courseDescription: data.courseDescription ?? "",
+        });
+
+        // Load course materials after loading course data
+        if (data.classId) {
+          await loadCourseMaterials(data.classId);
+        }
+      } catch (err) {
+        console.error("Failed to load course data:", err);
+        setError(
+          `Failed to load course data: ${
+            err instanceof Error ? err.message : "Unknown error"
+          }`
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadCourseData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
+
+  const [uploadedFiles, setUploadedFiles] = useState<CourseMaterial[]>([]);
+
+  // Load course materials
+  const loadCourseMaterials = async (classId: number) => {
+    try {
+      setMaterialsLoading(true);
+      const response = await fetch(
+        `${API_BASE}/api/materials?classId=${classId}`,
+        {
+          method: "GET",
+          headers: getAuthHeaders(),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch materials: ${response.statusText}`);
+      }
+
+      const materials: CourseMaterial[] = await response.json();
+      setUploadedFiles(materials);
+    } catch (err) {
+      console.error("Failed to load course materials:", err);
+      setError(
+        `Failed to load course materials: ${
+          err instanceof Error ? err.message : "Unknown error"
+        }`
+      );
+    } finally {
+      setMaterialsLoading(false);
+    }
+  };
 
   const handleEdit = () => {
     setIsEditing(true);
   };
 
-  const handleSave = () => {
-    setIsEditing(false);
-    // Here you would typically save to database
-    console.log("Saving course data:", courseData);
+  const handleSave = async () => {
+    if (!courseId) {
+      setError("Course ID is missing");
+      return;
+    }
+
+    try {
+      setSaving(true);
+      setError(null);
+
+      const coursePayload = {
+        classId: courseData.classId,
+        enrollmentCode: courseData.enrollmentCode,
+        courseName: courseData.courseName,
+        semester: courseData.semester,
+        courseDescription: courseData.courseDescription,
+      };
+
+      console.log("Sending course update:", coursePayload);
+
+      const response = await fetch(
+        `${API_BASE}/api/users/courses/list/${courseId}`,
+        {
+          method: "PUT",
+          headers: getAuthHeaders(),
+          body: JSON.stringify(coursePayload),
+          // credentials: "include", // uncomment if your API uses cookies
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Failed to update course: ${response.statusText}`);
+      }
+
+      const updatedCourse = await response.json();
+      console.log("Received updated course:", updatedCourse);
+
+      setCourseData({
+        classId: updatedCourse.classId ?? null,
+        enrollmentCode: updatedCourse.enrollmentCode ?? "",
+        courseName: updatedCourse.courseName ?? "",
+        semester: updatedCourse.semester ?? "",
+        courseDescription: updatedCourse.courseDescription ?? "",
+      });
+      setIsEditing(false);
+
+      console.log("Course updated successfully:", updatedCourse);
+    } catch (err) {
+      console.error("Failed to save course data:", err);
+      setError("Failed to save course data. Please try again.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleCancel = () => {
     setIsEditing(false);
-    // Reset to original data if needed
   };
 
   const handleInputChange = (field: string, value: string) => {
@@ -65,18 +235,246 @@ const CourseInfoPage: React.FC = () => {
     }));
   };
 
-  const handleDeleteFile = (fileId: number) => {
-    setUploadedFiles(uploadedFiles.filter((file) => file.id !== fileId));
+  const handleDeleteFile = async (fileId: number) => {
+    if (!confirm("Are you sure you want to delete this file?")) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_BASE}/api/materials/${fileId}?soft=true`, {
+        method: "DELETE",
+        headers: getAuthHeadersMultipart(),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to delete file: ${response.statusText}`);
+      }
+
+      // Remove file from state
+      setUploadedFiles((prev) => prev.filter((file) => file.id !== fileId));
+      console.log("File deleted successfully");
+    } catch (err) {
+      console.error("Failed to delete file:", err);
+      setError(
+        `Failed to delete file: ${
+          err instanceof Error ? err.message : "Unknown error"
+        }`
+      );
+    }
   };
 
-  const handleDownloadFile = (fileName: string) => {
-    // In a real app, this would trigger a download from your server
-    console.log(`Downloading file: ${fileName}`);
-    alert(`Download feature would download: ${fileName}`);
+  const handleStartRename = (material: CourseMaterial) => {
+    setEditingFileId(material.id);
+    setEditingFileName(material.name);
   };
+
+  const handleCancelRename = () => {
+    setEditingFileId(null);
+    setEditingFileName("");
+  };
+
+  const handleSaveRename = async (fileId: number) => {
+    if (!editingFileName.trim()) {
+      setError("File name cannot be empty");
+      return;
+    }
+
+    try {
+      // Send name as query parameter and use FormData for multipart
+      const formData = new FormData();
+      // Add a dummy field to ensure valid multipart request
+      formData.append("_rename", "true");
+      const encodedName = encodeURIComponent(editingFileName.trim());
+
+      const response = await fetch(
+        `${API_BASE}/api/materials/${fileId}?name=${encodedName}`,
+        {
+          method: "PATCH",
+          headers: getAuthHeadersMultipart(),
+          body: formData,
+        }
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to rename file: ${response.statusText} - ${errorText}`);
+      }
+
+      const updatedMaterial: CourseMaterial = await response.json();
+      
+      // Update the file in state
+      setUploadedFiles((prev) =>
+        prev.map((file) => (file.id === fileId ? updatedMaterial : file))
+      );
+      
+      setEditingFileId(null);
+      setEditingFileName("");
+      console.log("File renamed successfully");
+    } catch (err) {
+      console.error("Failed to rename file:", err);
+      setError(
+        `Failed to rename file: ${
+          err instanceof Error ? err.message : "Unknown error"
+        }`
+      );
+    }
+  };
+
+  const handleReplaceFile = async (
+    fileId: number,
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const newFile = event.target.files?.[0];
+    if (!newFile) {
+      return;
+    }
+
+    if (!confirm(`Are you sure you want to replace this file with "${newFile.name}"?`)) {
+      event.target.value = "";
+      return;
+    }
+
+    try {
+      setReplacingFileId(fileId);
+      setError(null);
+
+      const formData = new FormData();
+      formData.append("file", newFile);
+
+      const response = await fetch(`${API_BASE}/api/materials/${fileId}`, {
+        method: "PATCH",
+        headers: getAuthHeadersMultipart(),
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to replace file: ${response.statusText} - ${errorText}`);
+      }
+
+      const updatedMaterial: CourseMaterial = await response.json();
+      
+      // Update the file in state
+      setUploadedFiles((prev) =>
+        prev.map((file) => (file.id === fileId ? updatedMaterial : file))
+      );
+      
+      console.log("File replaced successfully");
+      
+      // Reset the file input
+      event.target.value = "";
+    } catch (err) {
+      console.error("Failed to replace file:", err);
+      setError(
+        `Failed to replace file: ${
+          err instanceof Error ? err.message : "Unknown error"
+        }`
+      );
+      // Reset the file input on error too
+      event.target.value = "";
+    } finally {
+      setReplacingFileId(null);
+    }
+  };
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !courseData.classId) {
+      return;
+    }
+
+    try {
+      setUploadingFile(true);
+      setError(null);
+
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("name", file.name);
+
+      const response = await fetch(
+        `${API_BASE}/api/materials?classId=${courseData.classId}`,
+        {
+          method: "POST",
+          headers: getAuthHeadersMultipart(),
+          body: formData,
+        }
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to upload file: ${response.statusText} - ${errorText}`);
+      }
+
+      const newMaterial: CourseMaterial = await response.json();
+      setUploadedFiles((prev) => [...prev, newMaterial]);
+      console.log("File uploaded successfully:", newMaterial);
+
+      // Reset the file input
+      event.target.value = "";
+    } catch (err) {
+      console.error("Failed to upload file:", err);
+      setError(
+        `Failed to upload file: ${
+          err instanceof Error ? err.message : "Unknown error"
+        }`
+      );
+      // Reset the file input on error too
+      event.target.value = "";
+    } finally {
+      setUploadingFile(false);
+    }
+  };
+
+  const handleDeleteCourse = async () => {
+    if (!courseId) {
+      setError("Course ID is missing");
+      return;
+    }
+
+    const confirmMessage = `⚠️ WARNING: This will permanently delete the course "${courseData.courseName}" and ALL associated data including:\n\n• All course materials\n• All student enrollments\n• All chat messages\n• All embeddings\n\nThis action CANNOT be undone!\n\nType the course name to confirm deletion:`;
+
+    const userInput = prompt(confirmMessage);
+    
+    if (userInput !== courseData.courseName) {
+      if (userInput !== null) {
+        alert("Course name does not match. Deletion cancelled.");
+      }
+      return;
+    }
+
+    try {
+      setDeletingCourse(true);
+      setError(null);
+
+      const response = await fetch(`${API_BASE}/api/users/courses/${courseId}`, {
+        method: "DELETE",
+        headers: getAuthHeadersMultipart(),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to delete course: ${response.statusText} - ${errorText}`);
+      }
+
+      console.log("Course deleted successfully");
+      
+      // Redirect to teacher dashboard (main courses list) after successful deletion
+      window.location.href = "/teacher-dashboard";
+    } catch (err) {
+      console.error("Failed to delete course:", err);
+      setError(
+        `Failed to delete course: ${
+          err instanceof Error ? err.message : "Unknown error"
+        }`
+      );
+    } finally {
+      setDeletingCourse(false);
+    }
+  };
+
   return (
     <>
-      <Navbar />
+      <TeacherTopNavbar />
       <TeacherNavbar />
 
       <div className={styles.pageContainer}>
@@ -86,9 +484,34 @@ const CourseInfoPage: React.FC = () => {
             <p className={styles.pageSubtitle}>
               Manage your course details, settings, and configurations
             </p>
+            {error && (
+              <div
+                style={{
+                  color: "red",
+                  padding: "10px",
+                  background: "#fee",
+                  margin: "10px 0",
+                  borderRadius: "4px",
+                }}
+              >
+                Error: {error}
+              </div>
+            )}
+            {loading && (
+              <div
+                style={{
+                  color: "blue",
+                  padding: "10px",
+                  background: "#e6f3ff",
+                  margin: "10px 0",
+                  borderRadius: "4px",
+                }}
+              >
+                Loading course data...
+              </div>
+            )}
           </div>
 
-          {/* Course Name/Subject Box */}
           <div className={styles.courseNameBox}>
             <div className={styles.courseNameHeader}>
               <h2 className={styles.courseNameTitle}>Course Information</h2>
@@ -99,8 +522,12 @@ const CourseInfoPage: React.FC = () => {
                   </button>
                 ) : (
                   <div className={styles.editActions}>
-                    <button onClick={handleSave} className={styles.saveButton}>
-                      Save
+                    <button
+                      onClick={handleSave}
+                      className={styles.saveButton}
+                      disabled={saving}
+                    >
+                      {saving ? "Saving..." : "Save"}
                     </button>
                     <button
                       onClick={handleCancel}
@@ -133,37 +560,19 @@ const CourseInfoPage: React.FC = () => {
               </div>
 
               <div className={styles.courseField}>
-                <span className={styles.fieldLabel}>Subject:</span>
+                <span className={styles.fieldLabel}>Course Code:</span>
                 {isEditing ? (
                   <input
                     type="text"
-                    value={courseData.subject}
+                    value={courseData.enrollmentCode}
                     onChange={(e) =>
-                      handleInputChange("subject", e.target.value)
+                      handleInputChange("enrollmentCode", e.target.value)
                     }
                     className={styles.editInput}
                   />
                 ) : (
                   <span className={styles.fieldValue}>
-                    {courseData.subject}
-                  </span>
-                )}
-              </div>
-
-              <div className={styles.courseField}>
-                <span className={styles.fieldLabel}>Section:</span>
-                {isEditing ? (
-                  <input
-                    type="text"
-                    value={courseData.section}
-                    onChange={(e) =>
-                      handleInputChange("section", e.target.value)
-                    }
-                    className={styles.editInput}
-                  />
-                ) : (
-                  <span className={styles.fieldValue}>
-                    {courseData.section}
+                    {courseData.enrollmentCode}
                   </span>
                 )}
               </div>
@@ -172,34 +581,16 @@ const CourseInfoPage: React.FC = () => {
                 <span className={styles.fieldLabel}>Description:</span>
                 {isEditing ? (
                   <textarea
-                    value={courseData.description}
+                    value={courseData.courseDescription}
                     onChange={(e) =>
-                      handleInputChange("description", e.target.value)
+                      handleInputChange("courseDescription", e.target.value)
                     }
                     className={styles.editTextarea}
                     rows={3}
                   />
                 ) : (
                   <span className={styles.fieldValue}>
-                    {courseData.description}
-                  </span>
-                )}
-              </div>
-
-              <div className={styles.courseField}>
-                <span className={styles.fieldLabel}>Credits:</span>
-                {isEditing ? (
-                  <input
-                    type="text"
-                    value={courseData.credits}
-                    onChange={(e) =>
-                      handleInputChange("credits", e.target.value)
-                    }
-                    className={styles.editInput}
-                  />
-                ) : (
-                  <span className={styles.fieldValue}>
-                    {courseData.credits}
+                    {courseData.courseDescription}
                   </span>
                 )}
               </div>
@@ -221,76 +612,123 @@ const CourseInfoPage: React.FC = () => {
                   </span>
                 )}
               </div>
-
-              <div className={styles.courseField}>
-                <span className={styles.fieldLabel}>Meeting Time:</span>
-                {isEditing ? (
-                  <input
-                    type="text"
-                    value={courseData.meetingTime}
-                    onChange={(e) =>
-                      handleInputChange("meetingTime", e.target.value)
-                    }
-                    className={styles.editInput}
-                  />
-                ) : (
-                  <span className={styles.fieldValue}>
-                    {courseData.meetingTime}
-                  </span>
-                )}
-              </div>
-
-              <div className={styles.courseField}>
-                <span className={styles.fieldLabel}>Location:</span>
-                {isEditing ? (
-                  <input
-                    type="text"
-                    value={courseData.location}
-                    onChange={(e) =>
-                      handleInputChange("location", e.target.value)
-                    }
-                    className={styles.editInput}
-                  />
-                ) : (
-                  <span className={styles.fieldValue}>
-                    {courseData.location}
-                  </span>
-                )}
-              </div>
             </div>
           </div>
 
-          {/* Uploaded Files Section */}
           <div className={styles.uploadedFilesBox}>
-            <h2 className={styles.sectionTitle}>Uploaded Course Files</h2>
-            {uploadedFiles.length > 0 ? (
+            <div className={styles.courseNameHeader}>
+              <h2 className={styles.sectionTitle}>Uploaded Course Files</h2>
+              <div className={styles.uploadButtonContainer}>
+                <label
+                  htmlFor="file-upload"
+                  className={styles.uploadLabel}
+                  style={{ opacity: uploadingFile ? 0.6 : 1 }}
+                >
+                  {uploadingFile ? "Uploading..." : "Upload File"}
+                </label>
+                <input
+                  id="file-upload"
+                  type="file"
+                  onChange={handleFileUpload}
+                  disabled={uploadingFile || !courseData.classId}
+                  style={{ display: "none" }}
+                  accept=".pdf,.doc,.docx,.txt,.ppt,.pptx,.xls,.xlsx"
+                />
+              </div>
+            </div>
+            {materialsLoading ? (
+              <div
+                style={{
+                  padding: "20px",
+                  textAlign: "center",
+                  color: "#666",
+                }}
+              >
+                Loading course materials...
+              </div>
+            ) : uploadedFiles.length > 0 ? (
               <div className={styles.filesList}>
                 {uploadedFiles.map((file) => (
                   <div key={file.id} className={styles.fileItem}>
                     <div className={styles.fileIcon}>📄</div>
                     <div className={styles.fileInfo}>
-                      <div className={styles.fileName}>{file.name}</div>
-                      <div className={styles.fileDetails}>
-                        <span className={styles.fileSize}>{file.size}</span>
-                        <span className={styles.fileDivider}>•</span>
-                        <span className={styles.fileDate}>
-                          Uploaded:{" "}
-                          {new Date(file.uploadDate).toLocaleDateString()}
-                        </span>
-                      </div>
+                      {editingFileId === file.id ? (
+                        <div className={styles.fileNameEdit}>
+                          <input
+                            type="text"
+                            value={editingFileName}
+                            onChange={(e) => setEditingFileName(e.target.value)}
+                            className={styles.editInput}
+                            autoFocus
+                          />
+                          <div className={styles.editActions}>
+                            <button
+                              onClick={() => handleSaveRename(file.id)}
+                              className={styles.saveButton}
+                              style={{ fontSize: "0.75rem", padding: "6px 12px" }}
+                            >
+                              Save
+                            </button>
+                            <button
+                              onClick={handleCancelRename}
+                              className={styles.cancelButton}
+                              style={{ fontSize: "0.75rem", padding: "6px 12px" }}
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <>
+                          <div className={styles.fileName}>{file.name}</div>
+                          <div className={styles.fileDetails}>
+                            {file.size && (
+                              <>
+                                <span className={styles.fileSize}>{file.size}</span>
+                                <span className={styles.fileDivider}>•</span>
+                              </>
+                            )}
+                            <span className={styles.fileDate}>
+                              Uploaded:{" "}
+                              {new Date(file.uploadedAt).toLocaleDateString()}
+                            </span>
+                          </div>
+                        </>
+                      )}
                     </div>
                     <div className={styles.fileActions}>
                       <button
-                        onClick={() => handleDownloadFile(file.name)}
-                        className={styles.downloadButton}
-                        title="Download file"
+                        onClick={() => handleStartRename(file)}
+                        className={styles.renameButton}
+                        title="Rename file"
+                        disabled={editingFileId !== null}
                       >
-                        ⬇️
+                        ✏️
                       </button>
+                      <label
+                        htmlFor={`replace-file-${file.id}`}
+                        className={styles.replaceButton}
+                        title="Replace file"
+                        style={{
+                          opacity: replacingFileId === file.id ? 0.6 : 1,
+                          cursor: replacingFileId === file.id ? "wait" : "pointer",
+                        }}
+                      >
+                        🔄
+                      </label>
+                      <input
+                        id={`replace-file-${file.id}`}
+                        type="file"
+                        onChange={(e) => handleReplaceFile(file.id, e)}
+                        disabled={replacingFileId !== null}
+                        style={{ display: "none" }}
+                        accept=".pdf,.doc,.docx,.txt,.ppt,.pptx,.xls,.xlsx"
+                      />
                       <button
                         onClick={() => handleDeleteFile(file.id)}
                         className={styles.deleteButton}
                         title="Delete file"
+                        disabled={editingFileId !== null || replacingFileId !== null}
                       >
                         🗑️
                       </button>
@@ -302,24 +740,31 @@ const CourseInfoPage: React.FC = () => {
               <div className={styles.noFiles}>
                 <p>No files uploaded yet.</p>
                 <p className={styles.noFilesSubtext}>
-                  Files uploaded through the course creation page will appear
-                  here.
+                  Upload course materials using the button above.
                 </p>
               </div>
             )}
           </div>
 
-          <div className={styles.contentSection}>
-            <div className={styles.infoCard}>
-              <h2 className={styles.sectionTitle}>Course Settings</h2>
-              <p className={styles.placeholder}>
-                Course settings and configuration options will appear here...
-              </p>
-            </div>
+          <div className={styles.deleteCourseSection}>
+            <h3 className={styles.dangerZoneTitle}>Danger Zone</h3>
+            <p className={styles.dangerZoneDescription}>
+              Permanently delete this course and all associated data. This action cannot be undone.
+            </p>
+            <button
+              onClick={handleDeleteCourse}
+              className={styles.deleteCourseButton}
+              disabled={deletingCourse || loading}
+            >
+              {deletingCourse ? "Deleting..." : "Delete Course"}
+            </button>
           </div>
 
           <div className={styles.backLinkContainer}>
-            <Link href="/teacher-course-dashboard" className={styles.backLink}>
+            <Link 
+              href={courseId ? `/teacher-course-dashboard?course=${courseId}` : "/teacher-course-dashboard"} 
+              className={styles.backLink}
+            >
               Back to Dashboard
             </Link>
           </div>
@@ -328,6 +773,20 @@ const CourseInfoPage: React.FC = () => {
 
       <Footer />
     </>
+  );
+};
+
+const CourseInfoPage: React.FC = () => {
+  return (
+    <Suspense
+      fallback={
+        <div style={{ padding: "40px", textAlign: "center" }}>
+          Loading course information...
+        </div>
+      }
+    >
+      <CourseInfoContent />
+    </Suspense>
   );
 };
 
