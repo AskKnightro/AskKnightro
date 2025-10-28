@@ -117,6 +117,29 @@
   transform: translateY(-1px);
 }
 
+.uploadButtonContainer {
+  display: flex;
+  gap: 8px;
+}
+
+.uploadLabel {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.875rem;
+  display: inline-block;
+}
+
+.uploadLabel:hover {
+  background-color: #0056b3;
+  transform: translateY(-1px);
+}
+
 .courseNameContent {
   display: flex;
   flex-direction: column;
@@ -206,7 +229,7 @@
 
 .fileItem {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 16px;
   padding: 16px;
   background-color: #f8f9fa;
@@ -225,6 +248,7 @@
   color: #495057;
   min-width: 32px;
   text-align: center;
+  padding-top: 4px;
 }
 
 .fileInfo {
@@ -263,9 +287,12 @@
 .fileActions {
   display: flex;
   gap: 8px;
+  align-self: flex-start;
+  padding-top: 4px;
 }
 
-.downloadButton,
+.renameButton,
+.replaceButton,
 .deleteButton {
   background: none;
   border: none;
@@ -281,14 +308,47 @@
   height: 36px;
 }
 
-.downloadButton:hover {
+.renameButton:hover:not(:disabled) {
+  background-color: #fff3cd;
+  transform: scale(1.1);
+}
+
+.replaceButton:hover {
   background-color: #e3f2fd;
   transform: scale(1.1);
 }
 
-.deleteButton:hover {
+.deleteButton:hover:not(:disabled) {
   background-color: #ffebee;
   transform: scale(1.1);
+}
+
+.renameButton:disabled,
+.deleteButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.fileNameEdit {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.fileNameEdit .editInput {
+  max-width: 100%;
+}
+
+.fileNameEdit .editActions {
+  display: flex;
+  gap: 8px;
+}
+
+.fileNameEdit .saveButton,
+.fileNameEdit .cancelButton {
+  pointer-events: auto;
+  z-index: 1;
 }
 
 .noFiles {
@@ -337,6 +397,57 @@
   margin: 0;
   padding: 20px 0;
   text-align: center;
+}
+
+.deleteCourseSection {
+  background-color: #fff5f5;
+  border: 2px solid #fc8181;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 32px;
+  margin-top: 32px;
+}
+
+.dangerZoneTitle {
+  color: #c53030;
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin: 0 0 12px 0;
+}
+
+.dangerZoneDescription {
+  color: #742a2a;
+  font-size: 1rem;
+  margin: 0 0 20px 0;
+  line-height: 1.5;
+}
+
+.deleteCourseButton {
+  background-color: #e53e3e;
+  color: white;
+  border: none;
+  padding: 16px 32px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 1.125rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  width: 100%;
+  max-width: 300px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.deleteCourseButton:hover:not(:disabled) {
+  background-color: #c53030;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(197, 48, 48, 0.4);
+}
+
+.deleteCourseButton:disabled {
+  background-color: #fc8181;
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 
 .backLinkContainer {

@@ -5,6 +5,8 @@ import com.askknightro.askknightro.dto.CourseDto;
 import com.askknightro.askknightro.entity.Course;
 import com.askknightro.askknightro.entity.Teacher;
 import com.askknightro.askknightro.repository.CourseManagementRepository;
+import com.askknightro.askknightro.repository.CourseMaterialRepository;
+import com.askknightro.askknightro.repository.EnrollmentRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +24,9 @@ import java.util.Random;
 public class CourseManagementService
 {
     private final CourseManagementRepository courseManagementRepository;
+    private final CourseMaterialRepository courseMaterialRepository;
+    private final EnrollmentRepository enrollmentRepository;
+    private final CourseMaterialService courseMaterialService;
 
     @PersistenceContext
     private EntityManager em;
@@ -101,6 +106,24 @@ public class CourseManagementService
 
 
     // Service method for deleting a course
+    @Transactional
+    public void deleteCourse(int classId) {
+        // Assert course exists (404-like behavior)
+        courseManagementRepository.findById(classId)
+                .orElseThrow(() -> new RuntimeException("Course not found with id: " + classId));
+
+        // 1) Delete embeddings for the entire class
+        courseMaterialService.deleteEmbeddingsForClass(classId);
+
+        // 2) Delete all course materials for this class
+        courseMaterialRepository.deleteByCourseClass_ClassId(classId);
+
+        // 3) Delete enrollments for this class
+        enrollmentRepository.deleteByClassId(classId);
+
+        // 4) Delete the course itself
+        courseManagementRepository.deleteById(classId);
+    }
 
     // Helper methods
 

@@ -5,10 +5,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import CourseCard from "../components/CourseCard";
+import Button from "../components/Button";
 import styles from "../student-course-listing/student-course-listing.module.css";
-
-// If you ever see prerender errors, you can uncomment the next line
-// export const dynamic = "force-dynamic";
 
 // UI card model
 interface Course {
@@ -51,7 +49,7 @@ function mapDtoToCourse(dto: CourseDto): Course {
         instructor: dto.teacherId != null ? `You (Teacher #${dto.teacherId})` : "You",
         credits: 3,
         meetingTime: "See syllabus",
-        description: dto.courseDescription || "No description provided.",  // ⬅️ handles "", "   "
+        description: dto.courseDescription || "No description provided.",
     };
 }
 
@@ -161,6 +159,10 @@ function TeacherDashboardContent() {
         router.push(`/teacher-course-dashboard?course=${courseId}&teacherId=${teacherId}`);
     };
 
+    const handleCreateCourse = () => {
+        router.push(`/create-course?teacherId=${teacherId}`);
+    };
+
     return (
         <div className={styles.pageContainer}>
             <main className={styles.mainContent}>
@@ -170,8 +172,10 @@ function TeacherDashboardContent() {
                         {loadingTeacher ? "Loading…" : `Hello, ${teacherName}`}
                     </h1>
                     <p className={styles.subtitle}>
-                        This is your dashboard hub. From here, you can create new courses, manage existing ones, and set up AI Teaching Assistants trained specifically on your course materials.
+                        This is your dashboard hub. From here, you can create new courses, manage existing ones,
+                        and set up AI Teaching Assistants trained specifically on your course materials.
                     </p>
+                    
                 </div>
 
                 {/* Courses */}
@@ -197,6 +201,10 @@ function TeacherDashboardContent() {
                                 onClick={() => handleCourseClick(course.id)}
                             />
                         ))}
+                    </div>
+                    {/* Create Course button */}
+                    <div style={{ marginTop: 16 }}>
+                        <Button label="Create Course" onClick={handleCreateCourse} />
                     </div>
                 </div>
             </main>

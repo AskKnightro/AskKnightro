@@ -179,7 +179,7 @@ public class CourseMaterialService {
         vectorStore.delete(filter);
     }
 
-    private void deleteEmbeddingsForClass(Integer classId) {
+    public void deleteEmbeddingsForClass(Integer classId) {
         // Delete by metadata filter: classId == <classId>
         Filter.Expression filter = new Filter.Expression(
                 Filter.ExpressionType.EQ,

@@ -6,6 +6,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
+
 
 import java.util.List;
 import java.util.Optional;
@@ -33,6 +35,11 @@ public interface CourseMaterialRepository extends JpaRepository<CourseMaterial, 
     @Query("select m.id from CourseMaterial m " +
             "where m.courseClass.classId = :classId and m.isDeleted = false")
     List<Integer> findActiveIdsByClassId(@Param("classId") Integer classId);
+
+    // Hard delete all materials for a class
+    @Modifying
+    @Transactional
+    void deleteByCourseClass_ClassId(Integer classId);
 
     // Guard: ensure a material belongs to a class and is active
     boolean existsByIdAndCourseClass_ClassIdAndIsDeletedFalse(Integer id, Integer classId);
