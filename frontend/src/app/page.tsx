@@ -1,6 +1,6 @@
 "use client";
 
-import HomeNavbar from "./components/HomeNavbar";
+import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import LandingCard from "./components/LandingCard";
 import FeatureSection from "./components/FeatureSection";
@@ -11,7 +11,7 @@ import styles from "./components/LandingCard.module.css";
 export default function Home() {
   return (
     <>
-      <HomeNavbar />
+      <Navbar />
 
       <HeroSection />
 

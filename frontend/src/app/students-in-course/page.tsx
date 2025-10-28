@@ -2,7 +2,7 @@
 
 import React, { Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import Navbar from "../components/Navbar";
+import TeacherTopNavbar from "../components/TeacherTopNavbar";
 import Footer from "../components/Footer";
 import TeacherNavbar from "../components/TeacherNavbar";
 import Link from "next/link";
@@ -27,7 +27,7 @@ function getErrorMessage(err: unknown): string {
 export default function PageShell() {
   return (
       <>
-        <Navbar />
+        <TeacherTopNavbar />
         <TeacherNavbar />
         <Suspense
             fallback={
@@ -51,16 +51,19 @@ export default function PageShell() {
 function StudentsInCourseContent() {
   const params = useSearchParams();
 
-  // read both, like your teacher dashboard does
-  const teacherId = useMemo(() => {
-    const q = params?.get("teacherId");
-    return q ? parseInt(q, 10) : 1; // default for dev
-  }, [params]);
-
   const courseId = useMemo(() => {
-    const q = params?.get("course");
+    const q = params?.get("courseId") || params?.get("course");
     return q ? parseInt(q, 10) : undefined;
   }, [params]);
+
+  // Helper to get auth headers
+  const getAuthHeaders = () => {
+    const token = sessionStorage.getItem("ak_access") ?? localStorage.getItem("ak_access");
+    return {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    };
+  };
 
   const [students, setStudents] = useState<StudentDto[]>([]);
   const [loading, setLoading] = useState(true);
@@ -87,7 +90,7 @@ function StudentsInCourseContent() {
         setLoading(true);
         setErrorMsg("");
         const res = await fetch(`http://localhost:8080/api/enrollments/${courseId}`, {
-          headers: { "Content-Type": "application/json" },
+          headers: getAuthHeaders(),
           cache: "no-store",
         });
         if (!res.ok) {
@@ -151,7 +154,10 @@ function StudentsInCourseContent() {
     try {
       const res = await fetch(
           `http://localhost:8080/api/enrollments/${courseId}/students/${studentId}`,
-          { method: "DELETE" }
+          { 
+            method: "DELETE",
+            headers: getAuthHeaders(),
+          }
       );
       if (!res.ok) {
         const text = await res.text();
@@ -216,6 +222,13 @@ function StudentsInCourseContent() {
                                 </div>
                               </div>
                               <div className={styles.studentActions}>
+                                <Link
+                                    href={`/course-logs?courseId=${courseId}`}
+                                    className={styles.chatHistoryBtn}
+                                    title="View Course Logs"
+                                >
+                                  Course Logs
+                                </Link>
                                 <button
                                     className={styles.removeBtn}
                                     onClick={() => onRemove(s.studentId)}
@@ -248,19 +261,19 @@ function StudentsInCourseContent() {
                   <div className={styles.detailCard}>
                     <div className={styles.detailRow}>
                       <span className={styles.detailLabel}>Name:</span>
-                      <span>{selected.name}</span>
+                      <span className={styles.detailValue}>{selected.name}</span>
                     </div>
                     <div className={styles.detailRow}>
                       <span className={styles.detailLabel}>Email:</span>
-                      <span>{selected.email}</span>
+                      <span className={styles.detailValue}>{selected.email}</span>
                     </div>
                     <div className={styles.detailRow}>
                       <span className={styles.detailLabel}>Year:</span>
-                      <span>{selected.yearStanding || "—"}</span>
+                      <span className={styles.detailValue}>{selected.yearStanding || "—"}</span>
                     </div>
                     <div className={styles.detailRow}>
                       <span className={styles.detailLabel}>Major:</span>
-                      <span>{selected.major || "—"}</span>
+                      <span className={styles.detailValue}>{selected.major || "—"}</span>
                     </div>
 
                     <div className={styles.detailActions}>
@@ -280,7 +293,7 @@ function StudentsInCourseContent() {
 
           <div className={styles.backLinkContainer}>
             <Link
-                href={`/teacher-course-dashboard?course=${courseId ?? ""}&teacherId=${teacherId}`}
+                href={`/teacher-course-dashboard?course=${courseId ?? ""}`}
                 className={styles.backLink}
             >
               Back to Dashboard

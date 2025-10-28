@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import Navbar from "../components/Navbar";
+import StudentNavbar from "../components/StudentNavbar";
 import Footer from "../components/Footer";
 import Button from "../components/Button";
 import styles from "./student-profile.module.css";
@@ -100,7 +100,7 @@ export default function StudentProfilePage() {
 
   return (
     <>
-      <Navbar />
+      <StudentNavbar />
       <div className={styles.pageContainer}>
         <main className={styles.mainContent}>
           {/* Single Info Section */}

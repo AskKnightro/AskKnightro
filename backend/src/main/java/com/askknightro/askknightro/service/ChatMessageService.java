@@ -70,4 +70,22 @@ public class ChatMessageService {
                         .build())
                 .collect(Collectors.toList());
     }
+
+    // Add method to get messages by student and class
+    public List<ChatMessageDto> getMessagesByStudentAndClass(Integer studentId, Integer classId) {
+        List<ChatMessage> messages = chatMessageRepository
+                .findByStudentIdAndClassIdOrderByTimestampAsc(studentId, classId);
+
+        return messages.stream()
+                .map(message -> ChatMessageDto.builder()
+                        .messageId(message.getMessageId())
+                        .sessionId(message.getSessionId())
+                        .studentId(message.getStudentId())
+                        .classId(message.getClassId())
+                        .senderType(message.getSenderType())
+                        .content(message.getContent())
+                        .timestamp(message.getTimestamp())
+                        .build())
+                .collect(Collectors.toList());
+    }
 }

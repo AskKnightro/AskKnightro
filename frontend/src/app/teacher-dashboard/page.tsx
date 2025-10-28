@@ -1,12 +1,12 @@
 "use client";
 
-import React, { Suspense, useEffect, useMemo, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import Navbar from "../components/Navbar";
+import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import TeacherTopNavbar from "../components/TeacherTopNavbar";
 import Footer from "../components/Footer";
 import CourseCard from "../components/CourseCard";
 import Button from "../components/Button";
-import styles from "../student-course-listing/student-course-listing.module.css";
+import styles from "../student-dashboard/student-dashboard.module.css";
 
 // UI card model
 interface Course {
@@ -53,35 +53,10 @@ function mapDtoToCourse(dto: CourseDto): Course {
     };
 }
 
-/** Top-level page provides Suspense boundary */
 export default function TeacherDashboardPage() {
-    return (
-        <>
-            <Navbar />
-            <Suspense
-                fallback={
-                    <main className={styles.mainContent}>
-                        <p>Loading…</p>
-                    </main>
-                }
-            >
-                <TeacherDashboardContent />
-            </Suspense>
-            <Footer />
-        </>
-    );
-}
-
-/** Inner component uses useSearchParams and fetches teacher + courses */
-function TeacherDashboardContent() {
     const router = useRouter();
-    const params = useSearchParams();
 
-    const teacherId = useMemo(() => {
-        const q = params?.get("teacherId");
-        return q ? parseInt(q, 10) : 1; // default to 1 for local dev
-    }, [params]);
-
+    const [teacherId, setTeacherId] = useState<number | null>(null);
     const [teacherName, setTeacherName] = useState<string>("Professor");
     const [loadingTeacher, setLoadingTeacher] = useState<boolean>(true);
 
@@ -89,15 +64,33 @@ function TeacherDashboardContent() {
     const [loadingCourses, setLoadingCourses] = useState<boolean>(true);
     const [errorMsg, setErrorMsg] = useState<string>("");
 
+    // Load teacherId from storage on client side only
+    useEffect(() => {
+        const id = sessionStorage.getItem("userId") ?? localStorage.getItem("userId");
+        if (id) {
+            setTeacherId(parseInt(id, 10));
+        }
+    }, []);
+
+    // Helper to get auth headers
+    const getAuthHeaders = () => {
+        const token = sessionStorage.getItem("ak_access") ?? localStorage.getItem("ak_access");
+        return {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        };
+    };
+
     // Fetch teacher name
     useEffect(() => {
+        if (!teacherId) return; // Don't fetch until teacherId is available
         let cancelled = false;
         (async () => {
             try {
                 setLoadingTeacher(true);
                 const res = await fetch(
                     `http://localhost:8080/api/users/teachers/${teacherId}`,
-                    { headers: { "Content-Type": "application/json" }, cache: "no-store" }
+                    { headers: getAuthHeaders(), cache: "no-store" }
                 );
                 if (res.ok) {
                     const t: TeacherDto = await res.json();
@@ -118,6 +111,7 @@ function TeacherDashboardContent() {
 
     // Fetch courses taught by this teacher
     useEffect(() => {
+        if (!teacherId) return; // Don't fetch until teacherId is available
         let cancelled = false;
         (async () => {
             try {
@@ -126,7 +120,7 @@ function TeacherDashboardContent() {
                 const url = `http://localhost:8080/api/users/courses/user/${teacherId}?role=TEACHER`;
                 const res = await fetch(url, {
                     method: "GET",
-                    headers: { "Content-Type": "application/json" },
+                    headers: getAuthHeaders(),
                     cache: "no-store",
                 });
 
@@ -156,16 +150,18 @@ function TeacherDashboardContent() {
     }, [teacherId]);
 
     const handleCourseClick = (courseId: string) => {
-        router.push(`/teacher-course-dashboard?course=${courseId}&teacherId=${teacherId}`);
+        router.push(`/teacher-course-dashboard?course=${courseId}`);
     };
 
     const handleCreateCourse = () => {
-        router.push(`/create-course?teacherId=${teacherId}`);
+        router.push(`/create-course`);
     };
 
     return (
-        <div className={styles.pageContainer}>
-            <main className={styles.mainContent}>
+        <>
+            <TeacherTopNavbar />
+            <div className={styles.pageContainer}>
+                <main className={styles.mainContent}>
                 {/* Welcome */}
                 <div className={styles.welcomeSection}>
                     <h1 className={styles.welcomeMessage}>
@@ -187,7 +183,7 @@ function TeacherDashboardContent() {
                         <p style={{ color: "crimson", fontWeight: 600 }}>{errorMsg}</p>
                     )}
                     {!loadingCourses && !errorMsg && courses.length === 0 && (
-                        <p>You don’t have any courses yet.</p>
+                        <p style={{ color: "#000" }}>You don&apos;t have any courses yet.</p>
                     )}
 
                     <div className={styles.courseGrid}>
@@ -209,5 +205,7 @@ function TeacherDashboardContent() {
                 </div>
             </main>
         </div>
+        <Footer />
+    </>
     );
 }

@@ -2,7 +2,7 @@
 
 import React, { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import Navbar from "../components/Navbar";
+import TeacherTopNavbar from "../components/TeacherTopNavbar";
 import Footer from "../components/Footer";
 import TeacherNavbar from "../components/TeacherNavbar";
 import DashboardCard from "../components/DashboardCard";
@@ -39,10 +39,19 @@ type CourseDto = {
   shardId: string | null;
 };
 
+type CourseMaterialDto = {
+  id: number;
+  classId: number;
+  name: string;
+  vectorId: string | null;
+  isDeleted: boolean | null;
+  deletedAt: string | null;
+};
+
 export default function TeacherCourseDashboardPage() {
   return (
       <>
-        <Navbar />
+        <TeacherTopNavbar />
         <TeacherNavbar />
         <Suspense
             fallback={
@@ -64,11 +73,15 @@ function TeacherCourseDashboardContent() {
   const router = useRouter();
   const params = useSearchParams();
 
-  // teacherId from URL (?teacherId=2) or default to 1
-  const teacherId = useMemo(() => {
-    const q = params?.get("teacherId");
-    return q ? parseInt(q, 10) : 1;
-  }, [params]);
+  const [teacherId, setTeacherId] = useState<number | null>(null);
+
+  // Load teacherId from storage on client side only
+  useEffect(() => {
+    const id = sessionStorage.getItem("userId") ?? localStorage.getItem("userId");
+    if (id) {
+      setTeacherId(parseInt(id, 10));
+    }
+  }, []);
 
   // courseId is REQUIRED to show course data
   const courseId = useMemo(() => {
@@ -76,17 +89,27 @@ function TeacherCourseDashboardContent() {
     return q ? parseInt(q, 10) : undefined;
   }, [params]);
 
+  // Helper to get auth headers
+  const getAuthHeaders = () => {
+    const token = sessionStorage.getItem("ak_access") ?? localStorage.getItem("ak_access");
+    return {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    };
+  };
+
   // ---------- Teacher header ----------
   const [teacherName, setTeacherName] = useState<string>("Professor");
   const [loadingTeacher, setLoadingTeacher] = useState<boolean>(true);
 
   useEffect(() => {
+    if (!teacherId) return; // Don't fetch until teacherId is available
     let cancelled = false;
     (async () => {
       try {
         setLoadingTeacher(true);
         const res = await fetch(`http://localhost:8080/api/users/teachers/${teacherId}`, {
-          headers: { "Content-Type": "application/json" },
+          headers: getAuthHeaders(),
           cache: "no-store",
         });
         if (res.ok) {
@@ -125,7 +148,7 @@ function TeacherCourseDashboardContent() {
         setLoadingCourse(true);
         setCourseError("");
         const res = await fetch(`http://localhost:8080/api/users/courses/${courseId}`, {
-          headers: { "Content-Type": "application/json" },
+          headers: getAuthHeaders(),
           cache: "no-store",
         });
         if (!res.ok) {
@@ -168,7 +191,7 @@ function TeacherCourseDashboardContent() {
         setLoadingStudents(true);
         setStudentsError("");
         const res = await fetch(`http://localhost:8080/api/enrollments/${courseId}`, {
-          headers: { "Content-Type": "application/json" },
+          headers: getAuthHeaders(),
           cache: "no-store",
         });
         if (!res.ok) {
@@ -184,6 +207,49 @@ function TeacherCourseDashboardContent() {
         }
       } finally {
         if (!cancelled) setLoadingStudents(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [courseId]);
+
+  // ---------- Materials for the selected course ----------
+  const [materials, setMaterials] = useState<CourseMaterialDto[]>([]);
+  const [loadingMaterials, setLoadingMaterials] = useState<boolean>(true);
+  const [materialsError, setMaterialsError] = useState<string>("");
+
+  useEffect(() => {
+    if (!courseId) {
+      setMaterials([]);
+      setLoadingMaterials(false);
+      setMaterialsError("No course selected.");
+      return;
+    }
+
+    let cancelled = false;
+    (async () => {
+      try {
+        setLoadingMaterials(true);
+        setMaterialsError("");
+        const res = await fetch(`http://localhost:8080/api/materials?classId=${courseId}`, {
+          headers: getAuthHeaders(),
+          cache: "no-store",
+        });
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(`Failed to load materials (${res.status}): ${text || res.statusText}`);
+        }
+        const list: CourseMaterialDto[] = await res.json();
+        if (!cancelled) setMaterials(list);
+      } catch (err: unknown) {
+        if (!cancelled) {
+          setMaterials([]);
+          setMaterialsError(err instanceof Error ? err.message : "Unable to load materials.");
+        }
+      } finally {
+        if (!cancelled) setLoadingMaterials(false);
       }
     })();
 
@@ -210,11 +276,18 @@ function TeacherCourseDashboardContent() {
     ];
   })();
 
-  const materialsContent: string[] = ["Coming soon…"];
+  const materialsContent: string[] =
+      materials.length > 0
+          ? materials.filter((m) => !m.isDeleted).map((m) => m.name)
+          : materialsError
+              ? [materialsError]
+              : loadingMaterials
+                  ? ["Loading materials…"]
+                  : ["No materials uploaded yet."];
 
   const studentsContent: string[] =
       students.length > 0
-          ? students.slice(0, 5).map((s) => `${s.name} (${s.email})`)
+          ? students.map((s) => `${s.name} (${s.email})`)
           : studentsError
               ? [studentsError]
               : loadingStudents
@@ -224,15 +297,15 @@ function TeacherCourseDashboardContent() {
   // ---------- Navigation helpers (preserve courseId) ----------
   const navigateToCourseInfo = () => {
     if (!courseId) return;
-    router.push(`/course-info?course=${courseId}`);
+    router.push(`/course-info?courseId=${courseId}`);
   };
   const navigateToMaterials = () => {
     if (!courseId) return;
-    router.push(`/materials-overview?course=${courseId}`);
+    router.push(`/materials-overview?courseId=${courseId}`);
   };
   const navigateToStudents = () => {
     if (!courseId) return;
-    router.push(`/students-in-course?course=${courseId}&teacherId=${teacherId}`);
+    router.push(`/students-in-course?courseId=${courseId}`);
   };
 
   return (

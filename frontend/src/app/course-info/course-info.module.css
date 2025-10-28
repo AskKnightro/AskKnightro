@@ -1,5 +1,5 @@
 .pageContainer {
-  margin-left: 200px;
+  margin-left: 140px;
   padding-top: 50px;
   min-height: 100vh;
   background-color: white;
@@ -474,7 +474,7 @@
 /* Responsive Design */
 @media (max-width: 1024px) {
   .pageContainer {
-    margin-left: 200px;
+    margin-left: 140px;
   }
 
   .mainContent {

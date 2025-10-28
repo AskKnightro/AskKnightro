@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useRef, useState, useMemo, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import Navbar from "../components/Navbar";
+import React, { useRef, useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import TeacherTopNavbar from "../components/TeacherTopNavbar";
 import Footer from "../components/Footer";
 import Button from "../components/Button";
 import Link from "next/link";
@@ -28,42 +28,22 @@ type CourseDto = {
 
 const API_BASE = "http://localhost:8080";
 
-// Top-level page wrapped in Suspense (required by Next 15 for useSearchParams)
 export default function CreateCoursePage() {
-  return (
-      <>
-        <Navbar />
-        <Suspense
-            fallback={
-              <div className={styles.pageContainer}>
-                <main className={styles.mainContent}>
-                  <p>Loading…</p>
-                </main>
-              </div>
-            }
-        >
-          <CreateCourseInner />
-        </Suspense>
-        <Footer />
-      </>
-  );
-}
-
-// Inner component actually uses useSearchParams/useRouter
-function CreateCourseInner() {
   const router = useRouter();
-  const params = useSearchParams();
 
-  // Read teacherId from URL like /create-course?teacherId=7
-  const teacherId = useMemo(() => {
-    const q = params?.get("teacherId");
-    return q ? parseInt(q, 10) : undefined;
-  }, [params]);
-
+  const [teacherId, setTeacherId] = useState<number | undefined>(undefined);
   const [courseName, setCourseName] = useState("");
   const [classCode, setClassCode] = useState("");
   const [classDescription, setClassDescription] = useState("");
   const [termSemester, setTermSemester] = useState("");
+
+  // Load teacherId from storage on client side only
+  useEffect(() => {
+    const id = sessionStorage.getItem("userId") ?? localStorage.getItem("userId");
+    if (id) {
+      setTeacherId(parseInt(id, 10));
+    }
+  }, []);
 
   const [chosenFiles, setChosenFiles] = useState<ChosenFile[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -96,6 +76,15 @@ function CreateCourseInner() {
 
   const clickPick = () => fileInputRef.current?.click();
 
+  // Helper to get auth headers
+  const getAuthHeaders = () => {
+    const token = sessionStorage.getItem("ak_access") ?? localStorage.getItem("ak_access");
+    return {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    };
+  };
+
   async function createCourse(): Promise<CourseDto> {
     const payload = {
       courseName: courseName.trim(),
@@ -109,7 +98,7 @@ function CreateCourseInner() {
 
     const res = await fetch(`${API_BASE}/api/users/courses`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: getAuthHeaders(),
       body: JSON.stringify(payload),
     });
 
@@ -128,8 +117,15 @@ function CreateCourseInner() {
     form.append("file", cf.file, cf.name);
     form.append("name", cf.name);
 
+    const token = sessionStorage.getItem("ak_access") ?? localStorage.getItem("ak_access");
+    const headers: HeadersInit = {};
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+
     const res = await fetch(`${API_BASE}/api/materials`, {
       method: "POST",
+      headers,
       body: form, // let browser set multipart boundary
     });
 
@@ -145,7 +141,7 @@ function CreateCourseInner() {
     try {
       if (!teacherId) {
         alert(
-            "Missing teacherId in the URL. Open this page from the Teacher Dashboard so it passes ?teacherId=..."
+            "Missing teacherId. Please log in again."
         );
         return;
       }
@@ -171,9 +167,7 @@ function CreateCourseInner() {
       setProgressMsg("Done! Redirecting…");
 
       // 3) Go to the teacher course dashboard
-      router.push(
-          `/teacher-course-dashboard?course=${classId}&teacherId=${teacherId}`
-      );
+      router.push(`/teacher-course-dashboard?course=${classId}`);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Failed to create course.";
       console.error(err);
@@ -185,8 +179,10 @@ function CreateCourseInner() {
   };
 
   return (
-      <div className={styles.pageContainer}>
-        <main className={styles.mainContent}>
+      <>
+        <TeacherTopNavbar />
+        <div className={styles.pageContainer}>
+          <main className={styles.mainContent}>
           <div className={styles.contentGrid}>
             {/* Left Column - Form */}
             <div className={styles.leftColumn}>
@@ -345,5 +341,7 @@ function CreateCourseInner() {
           </div>
         </main>
       </div>
+      <Footer />
+    </>
   );
 }

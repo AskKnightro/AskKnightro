@@ -1,5 +1,5 @@
 .pageContainer {
-  margin-left: 200px;
+  margin-left: 140px;
   padding-top: 50px;
   min-height: 100vh;
   background-color: white;
@@ -86,7 +86,7 @@
 /* Responsive Design */
 @media (max-width: 1024px) {
   .pageContainer {
-    margin-left: 200px;
+    margin-left: 140px;
   }
 
   .mainContent {
@@ -189,6 +189,9 @@
   color: #666;
   font-weight: 600;
 }
+.detailValue {
+  color: #333;
+}
 
 /* list row layout and actions */
 .studentRow {
@@ -223,6 +226,23 @@
   color: #b00020;
   border-color: #f3c6cc;
   background: #fff5f6;
+}
+
+.chatHistoryBtn {
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid #007bff;
+  background: #e7f3ff;
+  color: #007bff;
+  font-size: 0.9rem;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  display: inline-block;
+}
+
+.chatHistoryBtn:hover {
+  background: #007bff;
+  color: white;
 }
 
 /* detail panel actions */

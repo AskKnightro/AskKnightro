@@ -26,17 +26,26 @@ services:
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-root}
       
 
-      # Spring AI OpenAI (set in your shell or .env, do NOT hardcode)
+      # Spring AI OpenAI (chat only, set in your shell or .env, do NOT hardcode)
       SPRING_AI_OPENAI_API_KEY: ${SPRING_AI_OPENAI_API_KEY}
+      SPRING_AI_OPENAI_CHAT_OPTIONS_MODEL: gpt-4o-mini
+      SPRING_AI_OPENAI_EMBEDDING_ENABLED: "false"
+
+      # Ollama Embeddings
+      SPRING_AI_OLLAMA_BASE_URL: http://ollama:11434
+      SPRING_AI_OLLAMA_EMBEDDING_MODEL: all-minilm
+      SPRING_AI_OLLAMA_EMBEDDING_ENABLED: "true"
+      SPRING_AI_OLLAMA_INIT_PULL_MODEL_STRATEGY: when_missing
 
       SPRING_AI_VECTORSTORE_MILVUS_CLIENT_HOST: standalone
       SPRING_AI_VECTORSTORE_MILVUS_CLIENT_PORT: 19530
       SPRING_AI_VECTORSTORE_MILVUS_CLIENT_SECURE: "false"
       SPRING_AI_VECTORSTORE_MILVUS_DATABASENAME: default
-      SPRING_AI_VECTORSTORE_MILVUS_COLLECTION_NAME: vector_store4
-      SPRING_AI_VECTORSTORE_MILVUS_EMBEDDINGDIMENSION: "1536"
+      SPRING_AI_VECTORSTORE_MILVUS_EMBEDDINGDIMENSION: "384"
       SPRING_AI_VECTORSTORE_MILVUS_INDEXTYPE: IVF_FLAT
       SPRING_AI_VECTORSTORE_MILVUS_METRICTYPE: COSINE
+      SPRING_AI_VECTORSTORE_MILVUS_INITIALIZE_SCHEMA: "true"
+      SPRING_AI_VECTORSTORE_MILVUS_AUTO_ID: "false"
 
       AWS_REGION: ${AWS_REGION:-us-east-2}
       COGNITO_USER_POOL_ID: ${COGNITO_USER_POOL_ID}
@@ -50,6 +59,8 @@ services:
         condition: service_healthy
       standalone:
         condition: service_healthy
+      ollama:
+        condition: service_started
     ports: ["8080:8080"]
 
   frontend:

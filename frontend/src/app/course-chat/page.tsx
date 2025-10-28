@@ -3,8 +3,8 @@
 import React, { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Image from "next/image";
-import ReactMarkdown from "react-markdown"; // Import react-markdown
-import Navbar from "../components/Navbar";
+import ReactMarkdown from "react-markdown";
+import StudentNavbar from "../components/StudentNavbar";
 import styles from "./course-chat.module.css";
 
 type Message = {
@@ -33,12 +33,22 @@ type TeacherDto = {
   bio?: string | null;
 };
 
+interface ChatMessageDto {
+  messageId?: number;
+  sessionId?: number;
+  studentId: number;
+  classId: number;
+  senderType: "STUDENT" | "AI";
+  content: string;
+  timestamp?: string;
+}
+
 export const dynamic = "force-dynamic";
 
 export default function PageShell() {
   return (
     <>
-      <Navbar />
+      <StudentNavbar />
       <Suspense
         fallback={
           <div className={styles.pageContainer}>
@@ -60,6 +70,28 @@ function CourseChatContent() {
     const q = params?.get("course");
     return q ? parseInt(q, 10) : undefined;
   }, [params]);
+
+  const [studentId, setStudentId] = useState<number | undefined>(undefined);
+
+  // Load studentId from storage on client side only
+  useEffect(() => {
+    const id = sessionStorage.getItem("userId") ?? localStorage.getItem("userId");
+    if (id) {
+      setStudentId(parseInt(id, 10));
+      console.log("Student ID loaded from storage:", parseInt(id, 10));
+    } else {
+      console.warn("⚠️ No studentId found. Chat messages will NOT be saved to database.");
+    }
+  }, []);
+
+  // Helper to get auth headers
+  const getAuthHeaders = () => {
+    const token = sessionStorage.getItem("ak_access") ?? localStorage.getItem("ak_access");
+    return {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    };
+  };
 
   const [course, setCourse] = useState<CourseDto | null>(null);
   const [teacher, setTeacher] = useState<TeacherDto | null>(null);
@@ -89,7 +121,7 @@ function CourseChatContent() {
         const cRes = await fetch(
           `http://localhost:8080/api/users/courses/${courseId}`,
           {
-            headers: { "Content-Type": "application/json" },
+            headers: getAuthHeaders(),
             cache: "no-store",
           }
         );
@@ -107,7 +139,7 @@ function CourseChatContent() {
           const tRes = await fetch(
             `http://localhost:8080/api/users/teachers/${cDto.teacherId}`,
             {
-              headers: { "Content-Type": "application/json" },
+              headers: getAuthHeaders(),
               cache: "no-store",
             }
           );
@@ -117,6 +149,30 @@ function CourseChatContent() {
           }
         }
 
+        // Load chat history if studentId is available
+        if (studentId) {
+          const messagesRes = await fetch(
+            `http://localhost:8080/api/messages/student/${studentId}/class/${courseId}`,
+            {
+              headers: getAuthHeaders(),
+              cache: "no-store",
+            }
+          );
+          if (messagesRes.ok) {
+            const chatHistory: ChatMessageDto[] = await messagesRes.json();
+            if (chatHistory.length > 0) {
+              const loadedMessages: Message[] = chatHistory.map((msg, idx) => ({
+                id: msg.messageId || idx,
+                type: msg.senderType === "STUDENT" ? "user" : "ai",
+                content: msg.content,
+                timestamp: msg.timestamp ? new Date(msg.timestamp) : new Date(),
+              }));
+              if (!cancelled) setMessages(loadedMessages);
+            }
+          }
+        }
+
+        // Add welcome message if no history
         if (!cancelled && messages.length === 0) {
           setMessages([
             {
@@ -139,7 +195,7 @@ function CourseChatContent() {
     return () => {
       cancelled = true;
     };
-  }, [courseId, messages.length]); // Added messages.length to dependency array
+  }, [courseId, studentId, messages.length]);
 
   const scrollToBottom = () =>
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -160,6 +216,34 @@ function CourseChatContent() {
     adjustTextareaHeight();
   }, [inputMessage]);
 
+  const saveMessageToDb = async (content: string, senderType: "STUDENT" | "AI") => {
+    if (!studentId || !courseId) {
+      console.warn("Cannot save message: missing studentId or courseId");
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://localhost:8080/api/messages`, {
+        method: "POST",
+        headers: getAuthHeaders(),
+        body: JSON.stringify({
+          studentId,
+          classId: courseId,
+          senderType,
+          content,
+        }),
+      });
+
+      if (!response.ok) {
+        console.error("Failed to save message:", response.statusText);
+      } else {
+        console.log(`✅ ${senderType} message saved to database`);
+      }
+    } catch (err) {
+      console.error("Error saving message:", err);
+    }
+  };
+
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputMessage.trim() || isTyping) return;
@@ -174,10 +258,13 @@ function CourseChatContent() {
     setInputMessage("");
     setIsTyping(true);
 
+    // Save user message to database
+    await saveMessageToDb(userMessage.content, "STUDENT");
+
     try {
       const response = await fetch("http://localhost:8080/api/ask", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           classId: courseId,
           question: userMessage.content,
@@ -198,6 +285,9 @@ function CourseChatContent() {
       };
 
       setMessages((prev) => [...prev, aiResponse]);
+
+      // Save AI message to database
+      await saveMessageToDb(aiResponse.content, "AI");
     } catch (error) {
       console.error("Error fetching AI response:", error);
       const errorMessage: Message = {
