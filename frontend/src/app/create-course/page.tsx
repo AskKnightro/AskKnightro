@@ -8,7 +8,7 @@ import Button from "../components/Button";
 import Link from "next/link";
 import styles from "./create-course.module.css";
 
-export const dynamic = "force-dynamic"; // avoid prerender errors for CSR-only page
+export const dynamic = "force-dynamic"; // disable prerendering for this route
 
 type ChosenFile = {
   id: string;
@@ -28,7 +28,7 @@ type CourseDto = {
 
 const API_BASE = "http://localhost:8080";
 
-// Top-level page with Suspense boundary
+// Top-level page wrapped in Suspense (required by Next 15 for useSearchParams)
 export default function CreateCoursePage() {
   return (
       <>
@@ -54,7 +54,7 @@ function CreateCourseInner() {
   const router = useRouter();
   const params = useSearchParams();
 
-  // Get teacherId from URL (e.g., /create-course?teacherId=7)
+  // Read teacherId from URL like /create-course?teacherId=7
   const teacherId = useMemo(() => {
     const q = params?.get("teacherId");
     return q ? parseInt(q, 10) : undefined;
@@ -77,7 +77,8 @@ function CreateCourseInner() {
 
     const next: ChosenFile[] = [];
     Array.from(files).forEach((f) => {
-      if (!f.name.toLowerCase().endsWith(".txt")) return; // MVP restriction
+      // MVP restriction: .txt only (backend accepts that per your controller)
+      if (!f.name.toLowerCase().endsWith(".txt")) return;
       next.push({
         id: `${Date.now()}_${Math.random().toString(36).slice(2)}`,
         name: f.name,
@@ -102,7 +103,7 @@ function CreateCourseInner() {
       courseDescription: classDescription.trim() || null,
       teacherId: teacherId ?? null,
       shardId: null as string | null,
-      // If blank, backend generates one
+      // If blank, backend generates enrollmentCode
       enrollmentCode: classCode.trim() || undefined,
     };
 
@@ -129,7 +130,7 @@ function CreateCourseInner() {
 
     const res = await fetch(`${API_BASE}/api/materials`, {
       method: "POST",
-      body: form, // browser sets multipart boundary
+      body: form, // let browser set multipart boundary
     });
 
     if (!res.ok) {
@@ -144,7 +145,7 @@ function CreateCourseInner() {
     try {
       if (!teacherId) {
         alert(
-            "Missing teacherId in the URL. Please open this page from the Teacher Dashboard."
+            "Missing teacherId in the URL. Open this page from the Teacher Dashboard so it passes ?teacherId=..."
         );
         return;
       }
@@ -156,11 +157,11 @@ function CreateCourseInner() {
       setSubmitting(true);
       setProgressMsg("Creating course…");
 
-      // 1) Create course (RDS)
+      // 1) Create course in RDS
       const created = await createCourse();
       const classId = created.classId;
 
-      // 2) Upload materials for embeddings (sequential = stable)
+      // 2) Upload each file to embed into Milvus
       for (let i = 0; i < chosenFiles.length; i++) {
         const cf = chosenFiles[i];
         setProgressMsg(`Embedding ${i + 1}/${chosenFiles.length}: ${cf.name}`);
@@ -169,7 +170,7 @@ function CreateCourseInner() {
 
       setProgressMsg("Done! Redirecting…");
 
-      // 3) Go to course dashboard
+      // 3) Go to the teacher course dashboard
       router.push(
           `/teacher-course-dashboard?course=${classId}&teacherId=${teacherId}`
       );
