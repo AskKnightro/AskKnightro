@@ -5,21 +5,18 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 
+import com.askknightro.askknightro.dto.*;
+import com.askknightro.askknightro.entity.Student;
+import com.askknightro.askknightro.entity.Teacher;
+import com.askknightro.askknightro.repository.StudentRepository;
+import com.askknightro.askknightro.repository.TeacherRepository;
+import com.azure.core.annotation.Get;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import com.askknightro.askknightro.dto.ConfirmSignupRequest;
-import com.askknightro.askknightro.dto.LoginRequestDto;
-import com.askknightro.askknightro.dto.LoginResponseDto;
-import com.askknightro.askknightro.dto.StudentDto;
-import com.askknightro.askknightro.dto.TeacherDto;
-import com.askknightro.askknightro.dto.UnifiedSignupRequestDto;
 import com.askknightro.askknightro.dto.UnifiedSignupRequestDto.Role;
 import com.askknightro.askknightro.service.CognitoAdminService;
 import com.askknightro.askknightro.service.CognitoAuthService;
@@ -37,7 +34,9 @@ import software.amazon.awssdk.services.cognitoidentityprovider.model.UserNotConf
 @RequiredArgsConstructor
 public class AuthController {
     private final StudentService studentService;
+    private final StudentRepository studentRepository;
     private final TeacherService teacherService;
+    private final TeacherRepository teacherRepository;
     private final CognitoAuthService cognito;         // wraps SignUp/ConfirmSignUp
     private final CognitoAdminService admin;           // for admin operations like adding to groups
     private final JwtDecoder jwtDecoder;        // your ACCESS token decoder (already used by resource server)
@@ -128,6 +127,28 @@ public class AuthController {
         }
 
         return ResponseEntity.ok(out);
+    }
+
+    @GetMapping("/profile")
+    public ResponseEntity<?> profile (@Valid @RequestParam String sub, @RequestParam String role) {
+
+        Integer id = null;
+        if(role.equals("student")) {
+            Student student = studentRepository.findIdByCognitoSub(sub);
+            id = student.getStudentId();
+        } else if(role.equals("teacher")) {
+            Teacher teacher = teacherRepository.findIdByCognitoSub(sub);
+            id = teacher.getTeacherId();
+        } else {
+            throw new IllegalArgumentException("invalid role");
+        }
+
+        if(id == null) {
+            return ResponseEntity.notFound().build();
+        } else {
+            return ResponseEntity.ok().body(id);
+        }
+
     }
 
 }
